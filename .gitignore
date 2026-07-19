@@ -2,13 +2,12 @@ node_modules
 .next
 out
 build
-.env
-.env*.local
 *.db
 *.db-journal
 .DS_Store
 next-env.d.ts
 .vercel
+.env*
 
 # Кеш инкрементальной сборки TypeScript.
 *.tsbuildinfo
