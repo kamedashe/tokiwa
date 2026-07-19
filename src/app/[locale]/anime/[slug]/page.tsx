@@ -16,6 +16,7 @@ import { visitorCountry } from "@/lib/geo";
 import { formatDuration, remainingMinutes } from "@/lib/backlog";
 import { pickTitle } from "@/lib/title-locale";
 import { localeAlternates } from "@/lib/seo";
+import { animeJsonLd, serializeJsonLd } from "@/lib/structured-data";
 
 // Страница показывает статус тайтла у текущего пользователя.
 export const dynamic = "force-dynamic";
@@ -84,6 +85,12 @@ export default async function TitlePage({
 
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(animeJsonLd(title, names.title, locale)),
+        }}
+      />
       <SiteHeader />
 
       <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-8 md:grid-cols-[280px_1fr] md:px-10">
