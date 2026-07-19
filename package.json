@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
-    "db:push": "prisma db push",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:related": "tsx scripts/sync-related.ts"
