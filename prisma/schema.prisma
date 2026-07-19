@@ -11,7 +11,15 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+
+  // Приложение ходит через пулер: serverless-функции открывают много коротких
+  // соединений, и без пулера база быстро упирается в лимит.
+  url = env("DATABASE_URL")
+
+  // Миграции — напрямую, мимо пулера. В transaction mode PgBouncer не даёт
+  // держать блокировки и сессионное состояние, без которых миграции не
+  // отрабатывают.
+  directUrl = env("DIRECT_URL")
 }
 
 model Title {
