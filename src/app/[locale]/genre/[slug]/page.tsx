@@ -7,6 +7,7 @@ import { TitleGrid } from "@/components/title-grid";
 import { getTranslations } from "next-intl/server";
 import { listTitles } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
+import { localeAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export async function generateMetadata({
   const genre = await getGenre(slug);
   if (!genre) return {};
 
-  return { title: genre.name };
+  return { title: genre.name, alternates: { languages: localeAlternates(`/genre/${slug}`) } };
 }
 
 export default async function GenrePage({

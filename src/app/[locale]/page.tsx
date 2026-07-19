@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SiteHeader } from "@/components/site-header";
@@ -7,10 +8,16 @@ import { Hero } from "@/components/hero";
 import { CardRow } from "@/components/card-row";
 import { getHero, getHomeRows } from "@/lib/queries";
 import { getContinueWatching } from "@/lib/watchlist";
+import { localeAlternates } from "@/lib/seo";
 
 // Страница персональная (шапка с профилем + «Продолжить просмотр»),
 // поэтому рендерится на каждый запрос, а не отдаётся статикой.
 export const dynamic = "force-dynamic";
+
+/** Заголовок и описание уже задаёт layout — тут только hreflang для «/». */
+export function generateMetadata(): Metadata {
+  return { alternates: { languages: localeAlternates("/") } };
+}
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

@@ -4,6 +4,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Manrope, Noto_Sans_JP, Space_Grotesk } from "next/font/google";
 import { routing } from "@/i18n/routing";
+import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -51,6 +52,9 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "meta" });
 
   return {
+    // Абсолютный корень для резолва относительных URL в метаданных
+    // (OG-картинки, alternates) — без него Next не может их собрать.
+    metadataBase: new URL(SITE_URL),
     title: {
       default: `${t("siteName")} — ${t("tagline")}`,
       template: `%s · ${t("siteName")}`,

@@ -7,6 +7,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { isSeasonKey, listTitles, seasonLabel } from "@/lib/queries";
+import { localeAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,10 @@ export async function generateMetadata({
   if (!parsed) return {};
 
   const t = await getTranslations({ locale, namespace: "seasons" });
-  return { title: seasonLabel(t, parsed.season, parsed.year) };
+  return {
+    title: seasonLabel(t, parsed.season, parsed.year),
+    alternates: { languages: localeAlternates(`/seasons/${year}/${season}`) },
+  };
 }
 
 export default async function SeasonPage({

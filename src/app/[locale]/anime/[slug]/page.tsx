@@ -15,6 +15,7 @@ import { getEntry } from "@/lib/watchlist";
 import { visitorCountry } from "@/lib/geo";
 import { formatDuration, remainingMinutes } from "@/lib/backlog";
 import { pickTitle } from "@/lib/title-locale";
+import { localeAlternates } from "@/lib/seo";
 
 // Страница показывает статус тайтла у текущего пользователя.
 export const dynamic = "force-dynamic";
@@ -49,6 +50,7 @@ export async function generateMetadata({
   return {
     title: display,
     description: title.synopsis?.slice(0, 160) ?? undefined,
+    alternates: { languages: localeAlternates(`/anime/${slug}`) },
     openGraph: {
       title: display,
       description: title.synopsis?.slice(0, 160) ?? undefined,

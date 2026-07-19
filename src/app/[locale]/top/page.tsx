@@ -1,13 +1,24 @@
+import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { getTranslations } from "next-intl/server";
 import { listTitles } from "@/lib/queries";
-
+import { localeAlternates } from "@/lib/seo";
 
 // Шапка показывает профиль текущего пользователя.
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "nav" });
+  return { title: t("top"), alternates: { languages: localeAlternates("/top") } };
+}
 
 export default async function TopPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
