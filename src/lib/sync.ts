@@ -129,7 +129,14 @@ export async function upsertFromShikimori(malId: number) {
  * Полный проход: топ по популярности + текущий сезон.
  * Возвращает сколько тайтлов затронули.
  */
-export async function syncCatalog({ pages = 1 }: { pages?: number } = {}) {
+export async function syncCatalog({
+  pages = 1,
+  budgetMs,
+}: { pages?: number; budgetMs?: number } = {}) {
+  // Прогон обогащает каждый тайтл через AniList и Shikimori, поэтому идёт
+  // куда медленнее, чем кажется по числу страниц: без потолка по времени он
+  // легко перерастает лимит серверless-ручки и обрывается на полуслове.
+  const deadline = budgetMs ? Date.now() + budgetMs : null;
   const seen = new Set<number>();
   let count = 0;
 
@@ -142,6 +149,8 @@ export async function syncCatalog({ pages = 1 }: { pages?: number } = {}) {
   }
 
   for (const [label, load] of sources) {
+    if (deadline && Date.now() > deadline) break;
+
     let batch: JikanAnime[];
     try {
       batch = await load();
@@ -151,6 +160,7 @@ export async function syncCatalog({ pages = 1 }: { pages?: number } = {}) {
     }
 
     for (const anime of batch) {
+      if (deadline && Date.now() > deadline) break;
       if (seen.has(anime.mal_id)) continue;
       seen.add(anime.mal_id);
       await upsertFromJikan(anime);
@@ -207,6 +217,70 @@ export async function syncCatalogFromShikimori({
   }
 
   return { checked, added, lastPage: startPage + pages - 1 };
+}
+
+const SHIKIMORI_CURSOR_KEY = "shikimoriPage";
+
+/**
+ * То же самое, но для крона: сама помнит, на какой странице остановилась
+ * (курсор в SyncState), и укладывается в бюджет времени, а не в число страниц —
+ * ручка на Vercel живёт максимум 60 секунд, а не «столько, сколько нужно».
+ *
+ * Когда страницы популярности заканчиваются, курсор возвращается к 1 —
+ * дальше там всё равно нишевое, а свежие тайтлы поднимаются наверх списка.
+ */
+export async function syncCatalogFromShikimoriCron({
+  budgetMs = 50_000,
+  onProgress,
+}: {
+  budgetMs?: number;
+  onProgress?: (message: string) => void;
+} = {}) {
+  const deadline = Date.now() + budgetMs;
+
+  const cursor = await prisma.syncState.findUnique({ where: { key: SHIKIMORI_CURSOR_KEY } });
+  let page = cursor?.value ?? 1;
+
+  let added = 0;
+  let checked = 0;
+  let pagesDone = 0;
+
+  while (Date.now() < deadline) {
+    const ids = await fetchPopularAnimeIds(page);
+    if (ids.length === 0) {
+      page = 1; // дошли до конца — начинаем следующий круг заново
+      break;
+    }
+
+    for (const malId of ids) {
+      checked++;
+      const existing = await prisma.title.findUnique({ where: { malId }, select: { id: true } });
+      if (existing) continue;
+
+      try {
+        const saved = await upsertFromShikimori(malId);
+        if (saved) {
+          added++;
+          onProgress?.(`  + ${saved.titleRu ?? saved.title}`);
+        }
+      } catch {
+        // Точечный сбой на одном тайтле не должен рушить весь прогон.
+      }
+
+      if (Date.now() > deadline) break;
+    }
+
+    page++;
+    pagesDone++;
+  }
+
+  await prisma.syncState.upsert({
+    where: { key: SHIKIMORI_CURSOR_KEY },
+    create: { key: SHIKIMORI_CURSOR_KEY, value: page },
+    update: { value: page },
+  });
+
+  return { checked, added, pagesDone, nextPage: page };
 }
 
 /**

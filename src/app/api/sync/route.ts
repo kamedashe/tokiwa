@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { markHomepagePicks, syncCatalog, syncRelated } from "@/lib/sync";
+import {
+  markHomepagePicks,
+  syncCatalog,
+  syncCatalogFromShikimoriCron,
+  syncRelated,
+} from "@/lib/sync";
 
 // Прогон ходит во внешние API и упирается в их задержки. 60 секунд — потолок
 // бесплатного тарифа Vercel; проходы инкрементальные и в него укладываются.
@@ -37,13 +42,15 @@ function authorize(request: Request): { ok: true } | { ok: false; response: Next
 }
 
 async function run(request: Request) {
+  const startedAt = Date.now();
   const auth = authorize(request);
   if (!auth.ok) return auth.response;
 
   const { searchParams } = new URL(request.url);
   const pages = Math.min(4, Math.max(1, Number(searchParams.get("pages")) || 1));
 
-  // ?mode=related достраивает франшизы вместо обновления топа и сезона.
+  // ?mode=related достраивает франшизы, ?mode=shikimori наполняет каталог
+  // дальше по популярности, продолжая с прошлой страницы.
   const mode = searchParams.get("mode");
 
   try {
@@ -53,9 +60,31 @@ async function run(request: Request) {
       return NextResponse.json({ ok: true, mode, ...result });
     }
 
-    const count = await syncCatalog({ pages });
+    if (mode === "shikimori") {
+      const result = await syncCatalogFromShikimoriCron();
+      await markHomepagePicks();
+      return NextResponse.json({ ok: true, mode, ...result });
+    }
+
+    // Порядок важен. Shikimori идёт первым: он предсказуемо быстрый, и за
+    // отведённое время гарантированно что-то добавит. Jikan нужен только ради
+    // свежего сезона (в топ по популярности новинки попадают с запозданием),
+    // но он то отвечает бодро, то уходит в ретраи — поэтому ему достаётся
+    // остаток бюджета, а не фиксированная доля.
+    const shikimori = await syncCatalogFromShikimoriCron({ budgetMs: 25_000 });
+
+    const left = maxDuration * 1000 - (Date.now() - startedAt) - 5_000;
+    const synced = left > 5_000 ? await syncCatalog({ pages, budgetMs: left }) : 0;
+
     await markHomepagePicks();
-    return NextResponse.json({ ok: true, mode: "catalog", synced: count });
+
+    return NextResponse.json({
+      ok: true,
+      mode: "catalog",
+      synced,
+      shikimoriAdded: shikimori.added,
+      nextPage: shikimori.nextPage,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Неизвестная ошибка";
     return NextResponse.json({ ok: false, error: message }, { status: 502 });

@@ -69,6 +69,14 @@ model Title {
   @@index([score])
 }
 
+/// Курсор фоновых прогонов, которым некуда больше писать прогресс — сейчас
+/// только "shikimoriPage": с какой страницы популярности продолжать в
+/// следующий раз, чтобы кроном не топтаться по уже пройденному.
+model SyncState {
+  key   String @id
+  value Int
+}
+
 model Genre {
   id     Int     @id @default(autoincrement())
   name   String  @unique
