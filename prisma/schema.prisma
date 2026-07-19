@@ -1,0 +1,167 @@
+// PostgreSQL и локально, и в проде — одна база на оба окружения, чтобы не
+// ловить расхождения. Главное из них: в SQLite оператор LIKE не различает
+// регистр, а в PostgreSQL различает, поэтому поиск, работавший локально,
+// в проде молча переставал находить. Теперь такого класса ошибок нет.
+//
+// Бесплатный тариф Neon даёт ветки — удобно держать отдельную для разработки.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Title {
+  id        Int     @id @default(autoincrement())
+  slug      String  @unique
+  malId     Int?    @unique
+  anilistId Int?    @unique
+
+  title    String
+  /// Русское название с Shikimori. Показываем его, когда оно есть.
+  titleRu  String?
+  titleJp  String?
+  synopsis String?
+
+  posterUrl String?
+  bannerUrl String?
+  /// Оттенок (0-360) для градиента-заглушки, когда постера нет.
+  hue       Int     @default(210)
+
+  year          Int?
+  season        String? // winter | spring | summer | fall
+  format        String? // TV | ONA | Movie | OVA
+  status        String? // releasing | finished | not_yet_aired
+  score         Float?
+  episodesCount Int?
+
+  /// Ручные флаги для главной — что попадает в hero и в «Сейчас в тренде».
+  isFeatured Boolean @default(false)
+  isTrending Boolean @default(false)
+
+  /// Длительность одной серии в минутах — основа расчёта времени на тайтл.
+  durationMin Int?
+
+  genres     Genre[]
+  watchLinks WatchLink[]
+  watchlist  WatchlistEntry[]
+
+  /// Когда последний раз тянули метаданные из Jikan — чтобы не дёргать API зря.
+  syncedAt DateTime?
+  /// Когда последний раз обходили связи. null — этот тайтл ещё не проверяли,
+  /// благодаря чему обход возобновляется с места остановки.
+  relatedSyncedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([year, season])
+  @@index([score])
+}
+
+model Genre {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  slug   String  @unique
+  titles Title[]
+}
+
+/// Ссылка «смотреть на легальном сервисе». Нужна там, где встроить нельзя:
+/// Кинопоиск, Okko и прочие держат контент под DRM и эмбедов не дают.
+model WatchLink {
+  id      Int   @id @default(autoincrement())
+  titleId Int
+  title   Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  /// Ключ из SERVICES в src/lib/services.ts.
+  service String
+  url     String
+
+  /// «Дубляж», «Субтитры» — что именно там есть.
+  note String?
+
+  createdAt DateTime @default(now())
+
+  /// Один сервис — одна ссылка на тайтл.
+  @@unique([titleId, service])
+}
+
+// --- Аккаунты. Структура моделей задана Auth.js, менять поля нельзя. ---
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  /// "user" | "admin". Админ ведёт ссылки на сервисы.
+  role String @default("user")
+
+  accounts  Account[]
+  sessions  Session[]
+  watchlist WatchlistEntry[]
+
+  createdAt DateTime @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+/// Список пользователя: «смотрю» / «посмотрел» / «брошено» / «запланировано».
+model WatchlistEntry {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  titleId Int
+  title   Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  status String @default("planned") // watching | completed | dropped | planned
+
+  /// На какой серии остановились — для ряда «Продолжить просмотр».
+  progress Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Один тайтл — одна запись на пользователя.
+  @@unique([userId, titleId])
+  @@index([userId, status, updatedAt])
+}
+

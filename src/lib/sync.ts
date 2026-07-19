@@ -1,0 +1,236 @@
+import { prisma } from "@/lib/prisma";
+import {
+  fetchAnimeById,
+  fetchCurrentSeason,
+  fetchRelatedIds,
+  fetchTopAnime,
+  normalize,
+  type JikanAnime,
+} from "@/lib/jikan";
+import { fetchArt, fetchRelatedIdsViaAniList } from "@/lib/anilist";
+import { fetchRussianTitle } from "@/lib/shikimori";
+import { hueFrom, slugify } from "@/lib/slug";
+
+/**
+ * Кладёт тайтл из Jikan в нашу БД. Ключ — malId, так что повторный вызов
+ * обновляет метаданные, а не плодит дубли.
+ */
+export async function upsertFromJikan(anime: JikanAnime, enrich = true) {
+  const base = normalize(anime);
+
+  // Jikan не отдаёт ни широких баннеров, ни русских названий — добираем из
+  // AniList и Shikimori. Оба падения не критичны: без них тайтл просто
+  // сохранится с тем, что есть.
+  const [art, titleRu] = enrich
+    ? await Promise.all([
+        fetchArt(base.malId).catch(() => null),
+        fetchRussianTitle(base.malId).catch(() => null),
+      ])
+    : [null, null];
+
+  const n = {
+    ...base,
+    titleRu,
+    anilistId: art?.anilistId ?? null,
+    // Обложка AniList заметно чётче, но если её нет — остаётся jikan'овская.
+    posterUrl: art?.coverUrl ?? base.posterUrl,
+    bannerUrl: art?.bannerUrl ?? base.bannerUrl,
+  };
+
+  const genres = await Promise.all(
+    n.genreNames.map((name) =>
+      prisma.genre.upsert({
+        where: { name },
+        create: { name, slug: slugify(name) },
+        update: {},
+      }),
+    ),
+  );
+
+  // Слаг должен быть уникальным: если такой уже занят другим тайтлом,
+  // дописываем malId.
+  let slug = slugify(n.title);
+  const clash = await prisma.title.findUnique({ where: { slug } });
+  if (clash && clash.malId !== n.malId) slug = `${slug}-${n.malId}`;
+
+  const data = {
+    slug,
+    title: n.title,
+    titleJp: n.titleJp,
+    titleRu: n.titleRu ?? undefined,
+    synopsis: n.synopsis,
+    posterUrl: n.posterUrl,
+    bannerUrl: n.bannerUrl,
+    hue: hueFrom(n.title),
+    year: n.year,
+    season: n.season,
+    format: n.format,
+    status: n.status,
+    score: n.score,
+    episodesCount: n.episodesCount,
+    durationMin: n.durationMin,
+    syncedAt: new Date(),
+  };
+
+  return prisma.title.upsert({
+    where: { malId: n.malId },
+    create: {
+      ...data,
+      malId: n.malId,
+      anilistId: n.anilistId,
+      genres: { connect: genres.map((g) => ({ id: g.id })) },
+    },
+    update: {
+      ...data,
+      genres: { set: genres.map((g) => ({ id: g.id })) },
+    },
+  });
+}
+
+/**
+ * Полный проход: топ по популярности + текущий сезон.
+ * Возвращает сколько тайтлов затронули.
+ */
+export async function syncCatalog({ pages = 1 }: { pages?: number } = {}) {
+  const seen = new Set<number>();
+  let count = 0;
+
+  // Jikan заметно нестабилен (пачками отдаёт 504). Если один источник
+  // отвалился — забираем что смогли из остальных, а не роняем весь прогон.
+  const sources: [string, () => Promise<JikanAnime[]>][] = [];
+  for (let page = 1; page <= pages; page++) {
+    sources.push([`top p${page}`, () => fetchTopAnime(25, page)]);
+    sources.push([`season p${page}`, () => fetchCurrentSeason(25, page)]);
+  }
+
+  for (const [label, load] of sources) {
+    let batch: JikanAnime[];
+    try {
+      batch = await load();
+    } catch (error) {
+      console.warn(`Источник «${label}» недоступен, пропускаем:`, (error as Error).message);
+      continue;
+    }
+
+    for (const anime of batch) {
+      if (seen.has(anime.mal_id)) continue;
+      seen.add(anime.mal_id);
+      await upsertFromJikan(anime);
+      count++;
+    }
+  }
+
+  return count;
+}
+
+/**
+ * Достраивает франшизы: у каждого тайтла в базе спрашивает связанные части
+ * (сиквелы, приквелы, фильмы, спешлы) и подтягивает недостающие.
+ *
+ * Без этого в каталоге лежит «Steins;Gate», но нет ни фильма, ни Zero —
+ * попадает только то, что оказалось в топе или текущем сезоне.
+ *
+ * `limit` ограничивает число новых тайтлов за прогон: связи ветвятся, и без
+ * потолка обход уходит гулять по половине MAL.
+ */
+export async function syncRelated({
+  seeds = 20,
+  limit = 40,
+  slug,
+  onProgress,
+}: {
+  /** Сколько тайтлов проверить за прогон. */
+  seeds?: number;
+  /** Потолок новых тайтлов — связи ветвятся, без него обход не кончится. */
+  limit?: number;
+  /** Обойти связи конкретного тайтла, не дожидаясь общей очереди. */
+  slug?: string;
+  onProgress?: (message: string) => void;
+} = {}) {
+  const known = await prisma.title.findMany({ select: { malId: true } });
+  const knownIds = new Set(known.map((t) => t.malId).filter((id): id is number => id !== null));
+
+  // Либо конкретный тайтл, либо те, у которых связи ещё не обходили —
+  // тогда прогон возобновляется с места остановки, а не начинает заново.
+  const pending = slug
+    ? await prisma.title.findMany({
+        where: { slug },
+        select: { id: true, malId: true, title: true },
+      })
+    : await prisma.title.findMany({
+        where: { relatedSyncedAt: null, malId: { not: null } },
+        orderBy: { score: "desc" },
+        take: seeds,
+        select: { id: true, malId: true, title: true },
+      });
+
+  let added = 0;
+  let checked = 0;
+
+  for (const seed of pending) {
+    if (!seed.malId) continue;
+    if (added >= limit) break;
+
+    // Jikan'овская ручка /relations лежит куда чаще остального API — для
+    // отдельных тайтлов она отдаёт 504 неделями. AniList выручает.
+    let related: number[] = [];
+    try {
+      related = await fetchRelatedIds(seed.malId);
+    } catch {
+      related = await fetchRelatedIdsViaAniList(seed.malId);
+      if (related.length === 0) continue; // отметку не ставим, вернёмся позже
+    }
+
+    checked++;
+
+    for (const malId of related) {
+      if (knownIds.has(malId) || added >= limit) continue;
+
+      try {
+        const anime = await fetchAnimeById(malId);
+        const saved = await upsertFromJikan(anime);
+        knownIds.add(malId);
+        added++;
+        onProgress?.(`  + ${saved.titleRu ?? saved.title}`);
+      } catch {
+        // Часть id ведёт на удалённые записи — это нормально.
+      }
+    }
+
+    await prisma.title.update({
+      where: { id: seed.id },
+      data: { relatedSyncedAt: new Date() },
+    });
+  }
+
+  const left = await prisma.title.count({ where: { relatedSyncedAt: null } });
+  return { checked, added, left };
+}
+
+/**
+ * Витрина главной: hero — самый высокий балл, дальше подборки.
+ * Флаги isFeatured/isTrending ставятся руками в БД и всегда побеждают.
+ */
+export async function markHomepagePicks() {
+  const hasFeatured = await prisma.title.count({ where: { isFeatured: true } });
+  if (hasFeatured === 0) {
+    const best = await prisma.title.findFirst({
+      where: { posterUrl: { not: null } },
+      orderBy: { score: "desc" },
+    });
+    if (best) await prisma.title.update({ where: { id: best.id }, data: { isFeatured: true } });
+  }
+
+  const hasTrending = await prisma.title.count({ where: { isTrending: true } });
+  if (hasTrending === 0) {
+    const top = await prisma.title.findMany({
+      orderBy: { score: "desc" },
+      take: 12,
+      select: { id: true },
+    });
+    await prisma.title.updateMany({
+      where: { id: { in: top.map((t) => t.id) } },
+      data: { isTrending: true },
+    });
+  }
+}
