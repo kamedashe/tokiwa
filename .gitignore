@@ -9,3 +9,6 @@ build
 .DS_Store
 next-env.d.ts
 .vercel
+
+# Кеш инкрементальной сборки TypeScript.
+*.tsbuildinfo
