@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { getMyList } from "@/lib/watchlist";
 import { STATUS_ORDER, WATCH_STATUSES } from "@/lib/watch-status";
@@ -32,6 +33,7 @@ export default async function MyListPage() {
             В каталог
           </Link>
         </div>
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/my" />
     </main>

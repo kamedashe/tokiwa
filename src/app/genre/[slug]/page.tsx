@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { listTitles } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
@@ -39,6 +40,7 @@ export default async function GenrePage({ params }: { params: Promise<{ slug: st
     <main className="min-h-screen">
       <SiteHeader current="/catalog" />
       <TitleGrid heading={genre.name} subheading={`${items.length} тайтлов`} items={items} />
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/catalog" />
     </main>

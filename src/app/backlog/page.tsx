@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { AnimeCard } from "@/components/anime-card";
 import { auth } from "@/auth";
 import { getBacklogStats, getFitting, type BacklogItem } from "@/lib/backlog-queries";
@@ -117,6 +118,7 @@ export default async function BacklogPage({
       </div>
 
       <div className="h-16" />
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/backlog" />
     </main>

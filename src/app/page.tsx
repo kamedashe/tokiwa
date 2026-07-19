@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { Hero } from "@/components/hero";
 import { CardRow } from "@/components/card-row";
 import { getHero, getHomeRows } from "@/lib/queries";
@@ -41,6 +42,7 @@ export default async function HomePage() {
         <CardRow key={row.title} row={row} index={i} />
       ))}
       <div className="h-12" />
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/" />
     </main>

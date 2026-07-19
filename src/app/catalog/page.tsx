@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { Pagination } from "@/components/pagination";
@@ -54,6 +55,7 @@ export default async function CatalogPage({
       <div className="px-4 pb-16 md:px-10">
         <Pagination page={result.page} pages={result.pages} hrefFor={hrefFor} />
       </div>
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/catalog" />
     </main>

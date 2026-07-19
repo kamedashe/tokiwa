@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { listTitles } from "@/lib/queries";
 
@@ -14,6 +15,7 @@ export default async function TopPage() {
     <main className="min-h-screen">
       <SiteHeader current="/top" />
       <TitleGrid heading="Топ-100" subheading="по оценке" items={items} />
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/catalog" />
     </main>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { Artwork } from "@/components/artwork";
 import { ProgressStepper } from "@/components/progress-stepper";
 import { WatchlistButton } from "@/components/watchlist-button";
@@ -73,7 +74,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
     <main className="min-h-screen">
       <SiteHeader />
 
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-6 py-8 md:grid-cols-[280px_1fr] md:px-10">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-8 md:grid-cols-[280px_1fr] md:px-10">
         <aside className="max-md:mx-auto max-md:w-[220px]">
           <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-hairline bg-surface">
             <Artwork
@@ -165,6 +166,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
       </div>
 
       <div className="h-16" />
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="" />
     </main>

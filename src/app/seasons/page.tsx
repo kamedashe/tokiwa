@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { currentSeason, listSeasons, listTitles } from "@/lib/queries";
 
@@ -51,6 +52,7 @@ export default async function SeasonsPage() {
       </div>
 
       <TitleGrid items={items} />
+      <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/catalog" />
     </main>
