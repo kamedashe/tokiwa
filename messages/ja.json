@@ -150,5 +150,25 @@
   "language": {
     "label": "言語",
     "switch": "言語を変更"
+  },
+  "import": {
+    "open": "リストをインポート",
+    "intro": "Shikimori または MyAnimeList からリストを取り込みます。すでにリストにある作品はそのまま残り、上書きされません。",
+    "shikimoriLabel": "SHIKIMORI（ユーザー名）",
+    "nicknamePlaceholder": "Shikimori のユーザー名",
+    "go": "インポート",
+    "malLabel": "MYANIMELIST（ファイル）",
+    "malHint": "MAL はユーザー名でのリスト取得を停止したため、エクスポートが必要です：myanimelist.net/panel.php?go=export →「Export My List」→ ダウンロードしたファイルをここにアップロード。",
+    "working": "リストを取り込んでいます…",
+    "done": "追加: {added}",
+    "skipped": "既存: {count}",
+    "missing": "次回に持ち越し: {count}",
+    "error": {
+      "unauthenticated": "ログインしてください。",
+      "notFound": "そのユーザー名は見つかりません。",
+      "failed": "取得に失敗しました。もう一度お試しください。",
+      "empty": "インポートできる項目がありません。"
+    },
+    "repeatHint": "カタログに無い作品は自動で取り込まれます。一度で全ては終わらないことがあるので、その場合はもう一度実行してください。"
   }
 }

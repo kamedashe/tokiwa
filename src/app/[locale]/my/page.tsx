@@ -5,7 +5,9 @@ import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
+import { ImportList } from "@/components/import-list";
 import { getMyList } from "@/lib/watchlist";
+import { importFromShikimori, importFromMalFile } from "@/lib/import-actions";
 import { STATUS_ORDER } from "@/lib/watch-status";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +38,11 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
             {t("toCatalog")}
           </Link>
         </div>
+
+        <div className="pb-16">
+          <ImportList importShikimori={importFromShikimori} importMal={importFromMalFile} />
+        </div>
+
       <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="/my" />
@@ -66,6 +73,9 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
           emptyText={c("nothingFound")}
         />
       ))}
+
+      <div className="h-12" />
+      <ImportList importShikimori={importFromShikimori} importMal={importFromMalFile} />
 
       <div className="h-16" />
       <div className="h-20 md:hidden" />

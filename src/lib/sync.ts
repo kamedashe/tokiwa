@@ -8,7 +8,7 @@ import {
   type JikanAnime,
 } from "@/lib/jikan";
 import { fetchArt, fetchRelatedIdsViaAniList } from "@/lib/anilist";
-import { fetchRussianTitle } from "@/lib/shikimori";
+import { fetchAnimeDetails, fetchRussianTitle } from "@/lib/shikimori";
 import { hueFrom, slugify } from "@/lib/slug";
 
 /**
@@ -28,15 +28,38 @@ export async function upsertFromJikan(anime: JikanAnime, enrich = true) {
       ])
     : [null, null];
 
-  const n = {
+  return persistTitle({
     ...base,
     titleRu,
     anilistId: art?.anilistId ?? null,
     // Обложка AniList заметно чётче, но если её нет — остаётся jikan'овская.
     posterUrl: art?.coverUrl ?? base.posterUrl,
     bannerUrl: art?.bannerUrl ?? base.bannerUrl,
-  };
+  });
+}
 
+/** Форма тайтла, из которой можно писать в БД: общая для Jikan и Shikimori. */
+interface NormalizedTitle {
+  malId: number;
+  title: string;
+  titleJp: string | null;
+  titleRu?: string | null;
+  synopsis: string | null;
+  posterUrl: string | null;
+  bannerUrl: string | null;
+  anilistId?: number | null;
+  year: number | null;
+  season: string | null;
+  format: string | null;
+  status: string | null;
+  score: number | null;
+  episodesCount: number | null;
+  durationMin: number | null;
+  genreNames: string[];
+}
+
+/** Собственно запись в БД: жанры, уникальный слаг, upsert по malId. */
+async function persistTitle(n: NormalizedTitle) {
   const genres = await Promise.all(
     n.genreNames.map((name) =>
       prisma.genre.upsert({
@@ -85,6 +108,21 @@ export async function upsertFromJikan(anime: JikanAnime, enrich = true) {
       genres: { set: genres.map((g) => ({ id: g.id })) },
     },
   });
+}
+
+/**
+ * Добирает тайтл из Shikimori. Используется импортом списков: Jikan на
+ * точечных запросах уходит в 504 и с ретраями съедает ~20 секунд на тайтл,
+ * тогда как Shikimori отвечает примерно за секунду и не подводит.
+ *
+ * Баннер и обложку получше потом подставит обычный синк через AniList —
+ * upsert не затирает уже заполненные поля пустыми.
+ */
+export async function upsertFromShikimori(malId: number) {
+  const details = await fetchAnimeDetails(malId);
+  if (!details) return null;
+
+  return persistTitle(details);
 }
 
 /**

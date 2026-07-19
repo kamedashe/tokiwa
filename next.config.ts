@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       // Обложки и баннеры.
       { protocol: "https", hostname: "cdn.myanimelist.net" },
       { protocol: "https", hostname: "s4.anilist.co" },
+      { protocol: "https", hostname: "shikimori.io" },
       // Аватары пользователей.
       { protocol: "https", hostname: "cdn.discordapp.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },

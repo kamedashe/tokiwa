@@ -150,5 +150,25 @@
   "language": {
     "label": "Language",
     "switch": "Change language"
+  },
+  "import": {
+    "open": "Import list",
+    "intro": "Bring your list over from Shikimori or MyAnimeList. Anything already in your list stays as it is — the import never overwrites.",
+    "shikimoriLabel": "SHIKIMORI BY USERNAME",
+    "nicknamePlaceholder": "your Shikimori username",
+    "go": "Import",
+    "malLabel": "MYANIMELIST FILE",
+    "malHint": "MAL no longer exposes lists by username, so an export is needed: myanimelist.net/panel.php?go=export → “Export My List” → upload the downloaded file here.",
+    "working": "Importing your list…",
+    "done": "Added: {added}",
+    "skipped": "already there: {count}",
+    "missing": "left for a repeat run: {count}",
+    "error": {
+      "unauthenticated": "Please sign in first.",
+      "notFound": "No user with that username.",
+      "failed": "The source did not respond. Try again.",
+      "empty": "Nothing to import."
+    },
+    "repeatHint": "Titles missing from our catalog are pulled in automatically. One run does not always cover everything — just run the import again."
   }
 }
