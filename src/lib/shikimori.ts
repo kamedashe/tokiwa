@@ -111,6 +111,30 @@ function first(values: (string | null)[] | null): string | null {
 }
 
 /**
+ * Страница каталога по популярности — источник id для наполнения базы.
+ * У Shikimori потолок в 50 записей на страницу, лишнее API просто обрезает.
+ */
+export async function fetchPopularAnimeIds(page: number, limit = 50): Promise<number[]> {
+  await throttle();
+
+  const params = new URLSearchParams({
+    order: "popularity",
+    page: String(page),
+    limit: String(Math.min(limit, 50)),
+    kind: "tv,movie,ova,ona,special,tv_special",
+  });
+
+  const res = await fetch(`${BASE}/animes?${params}`, {
+    headers: { "User-Agent": "TokiWa", accept: "application/json" },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) return [];
+
+  const list = (await res.json()) as { id: number }[];
+  return list.map((a) => a.id);
+}
+
+/**
  * Полные метаданные тайтла. Нужны импорту списков: Jikan на точечных
  * запросах стабильно отваливается в 504, а Shikimori отвечает надёжно и
  * заметно быстрее — при том, что id у них тот же самый malId.

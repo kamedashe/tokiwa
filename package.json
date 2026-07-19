@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-shikimori": "tsx scripts/sync-shikimori.ts",
     "db:related": "tsx scripts/sync-related.ts"
   },
   "prisma": {

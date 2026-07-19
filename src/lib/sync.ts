@@ -8,7 +8,7 @@ import {
   type JikanAnime,
 } from "@/lib/jikan";
 import { fetchArt, fetchRelatedIdsViaAniList } from "@/lib/anilist";
-import { fetchAnimeDetails, fetchRussianTitle } from "@/lib/shikimori";
+import { fetchAnimeDetails, fetchPopularAnimeIds, fetchRussianTitle } from "@/lib/shikimori";
 import { hueFrom, slugify } from "@/lib/slug";
 
 /**
@@ -159,6 +159,54 @@ export async function syncCatalog({ pages = 1 }: { pages?: number } = {}) {
   }
 
   return count;
+}
+
+/**
+ * Наполняет каталог напрямую из Shikimori, по популярности.
+ *
+ * Основной сид (`syncCatalog`) берёт только топ и текущий сезон из Jikan —
+ * этого мало, каталог отстаёт от живых списков пользователей на порядок
+ * (см. `backfillMissing` в import-actions.ts). Shikimori отдаёт то же самое
+ * быстрее и без 504, так что им и наполняем впрок, а не только по запросу
+ * во время импорта.
+ *
+ * `startPage` позволяет продолжить с места, если прошлый прогон прервали —
+ * страница пишется в лог, чтобы её можно было передать вручную.
+ */
+export async function syncCatalogFromShikimori({
+  pages = 4,
+  startPage = 1,
+  onProgress,
+}: {
+  pages?: number;
+  startPage?: number;
+  onProgress?: (message: string) => void;
+} = {}) {
+  let added = 0;
+  let checked = 0;
+
+  for (let page = startPage; page < startPage + pages; page++) {
+    const ids = await fetchPopularAnimeIds(page);
+    if (ids.length === 0) break; // страницы кончились
+
+    for (const malId of ids) {
+      checked++;
+      const existing = await prisma.title.findUnique({ where: { malId }, select: { id: true } });
+      if (existing) continue;
+
+      try {
+        const saved = await upsertFromShikimori(malId);
+        if (saved) {
+          added++;
+          onProgress?.(`  + ${saved.titleRu ?? saved.title}`);
+        }
+      } catch {
+        // Точечный сбой на одном тайтле не должен рушить весь прогон.
+      }
+    }
+  }
+
+  return { checked, added, lastPage: startPage + pages - 1 };
 }
 
 /**
