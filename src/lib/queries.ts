@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { pickTitle } from "@/lib/title-locale";
 
 export interface CardTitle {
   id: number;
@@ -22,10 +23,14 @@ export interface HeroTitle extends CardTitle {
 }
 
 export interface Row {
-  title: string;
-  count: string;
+  /** Ключ в словаре под `home.*` — подпись собирает компонент. */
+  key: string;
+  /** Сколько всего тайтлов в подборке; null — счётчик не показываем. */
+  count: number | null;
   href: string;
   items: CardTitle[];
+  /** Только для сезонного ряда: из чего собрать «Лето 2026». */
+  season?: { key: string; year: number };
 }
 
 const CARD_SELECT = {
@@ -33,6 +38,7 @@ const CARD_SELECT = {
   slug: true,
   title: true,
   titleRu: true,
+  titleJp: true,
   posterUrl: true,
   hue: true,
   score: true,
@@ -44,19 +50,21 @@ type CardRecord = {
   slug: string;
   title: string;
   titleRu: string | null;
+  titleJp: string | null;
   posterUrl: string | null;
   hue: number;
   score: number | null;
   genres: { name: string }[];
 };
 
-function toCard(t: CardRecord): CardTitle {
+function toCard(t: CardRecord, locale: string): CardTitle {
+  const names = pickTitle(t, locale);
+
   return {
     id: t.id,
     slug: t.slug,
-    // Русское название вперёд — сайт русскоязычный.
-    title: t.titleRu ?? t.title,
-    original: t.titleRu ? t.title : null,
+    title: names.title,
+    original: names.original,
     posterUrl: t.posterUrl,
     hue: t.hue,
     score: t.score,
@@ -64,17 +72,15 @@ function toCard(t: CardRecord): CardTitle {
   };
 }
 
-const SEASON_RU: Record<string, string> = {
-  winter: "Зима",
-  spring: "Весна",
-  summer: "Лето",
-  fall: "Осень",
-};
-
 export const SEASON_KEYS = ["winter", "spring", "summer", "fall"] as const;
 
-export function seasonLabel(key: string, year: number) {
-  return `${SEASON_RU[key] ?? key} ${year}`;
+/** «Лето 2026» на языке пользователя. Подписи сезонов лежат в словаре. */
+export function seasonLabel(
+  t: (key: string) => string,
+  key: string,
+  year: number,
+): string {
+  return `${t(key)} ${year}`;
 }
 
 export function isSeasonKey(value: string): boolean {
@@ -94,7 +100,6 @@ export async function listSeasons() {
     .map((r) => ({
       year: r.year as number,
       season: r.season as string,
-      label: seasonLabel(r.season as string, r.year as number),
       count: r._count._all,
     }))
     .sort((a, b) => {
@@ -107,11 +112,12 @@ export async function listSeasons() {
 export function currentSeason(now = new Date()) {
   const month = now.getMonth();
   const key = month < 3 ? "winter" : month < 6 ? "spring" : month < 9 ? "summer" : "fall";
-  return { key, label: `${SEASON_RU[key]} ${now.getFullYear()}`, year: now.getFullYear() };
+  return { key, year: now.getFullYear() };
 }
 
 /** Плоский список карточек для страниц-сеток (каталог, топ, сезоны). */
 export async function listTitles(
+  locale: string,
   where: Record<string, unknown> = {},
   take = 60,
 ): Promise<CardTitle[]> {
@@ -121,13 +127,14 @@ export async function listTitles(
     take,
     select: CARD_SELECT,
   });
-  return rows.map(toCard);
+  return rows.map((r) => toCard(r, locale));
 }
 
+/** Подписи лежат в словаре под `catalog.byScore` и так далее. */
 export const SORTS = {
-  score: { label: "По оценке", orderBy: [{ score: "desc" }, { id: "asc" }] },
-  year: { label: "Новее", orderBy: [{ year: "desc" }, { score: "desc" }] },
-  title: { label: "По алфавиту", orderBy: [{ title: "asc" }] },
+  score: { orderBy: [{ score: "desc" }, { id: "asc" }] },
+  year: { orderBy: [{ year: "desc" }, { score: "desc" }] },
+  title: { orderBy: [{ title: "asc" }] },
 } as const;
 
 export type SortKey = keyof typeof SORTS;
@@ -137,6 +144,7 @@ export function isSortKey(value: string | undefined): value is SortKey {
 }
 
 export interface SearchParamsInput {
+  locale: string;
   q?: string;
   genre?: string;
   sort?: SortKey;
@@ -146,6 +154,7 @@ export interface SearchParamsInput {
 
 /** Каталог: поиск + фильтр по жанру + сортировка + постраничность. */
 export async function searchTitles({
+  locale,
   q,
   genre,
   sort = "score",
@@ -179,7 +188,7 @@ export async function searchTitles({
   ]);
 
   return {
-    items: rows.map(toCard),
+    items: rows.map((r) => toCard(r, locale)),
     total,
     page,
     perPage,
@@ -199,7 +208,7 @@ export async function listGenres() {
     .map((g) => ({ name: g.name, slug: g.slug, count: g._count.titles }));
 }
 
-export async function getHero(): Promise<HeroTitle | null> {
+export async function getHero(locale: string): Promise<HeroTitle | null> {
   const t =
     (await prisma.title.findFirst({
       where: { isFeatured: true },
@@ -213,7 +222,7 @@ export async function getHero(): Promise<HeroTitle | null> {
   if (!t) return null;
 
   return {
-    ...toCard({ ...t, titleRu: t.titleRu }),
+    ...toCard(t, locale),
     titleJp: t.titleJp,
     synopsis: t.synopsis,
     bannerUrl: t.bannerUrl,
@@ -222,7 +231,7 @@ export async function getHero(): Promise<HeroTitle | null> {
   };
 }
 
-export async function getHomeRows(excludeId?: number): Promise<Row[]> {
+export async function getHomeRows(locale: string, excludeId?: number): Promise<Row[]> {
   const season = currentSeason();
   const notHero = excludeId ? { id: { not: excludeId } } : {};
 
@@ -250,24 +259,23 @@ export async function getHomeRows(excludeId?: number): Promise<Row[]> {
 
   const rows: Row[] = [
     {
-      title: "Сейчас в тренде",
-      count: `№ ${trending.length}`,
-      href: "/catalog?sort=trending",
-      items: trending.map(toCard),
+      key: "trending",
+      count: trending.length,
+      href: "/catalog",
+      items: trending.map((r) => toCard(r, locale)),
     },
     {
-      title: `Сезон · ${season.label}`,
-      count: `${seasonTotal} тайтлов`,
+      key: "season",
+      count: seasonTotal,
       href: "/seasons",
-      items: seasonal.map(toCard),
+      items: seasonal.map((r) => toCard(r, locale)),
+      season,
     },
     {
-      // В макете здесь «Продолжить просмотр · ваш список», но аккаунтов пока
-      // нет — показываем честную подборку, пока не появится NextAuth.
-      title: "Высокий рейтинг",
-      count: "топ-100",
+      key: "highRated",
+      count: null,
       href: "/top",
-      items: topRated.map(toCard),
+      items: topRated.map((r) => toCard(r, locale)),
     },
   ];
 

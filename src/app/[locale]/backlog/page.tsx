@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -8,23 +9,29 @@ import { auth } from "@/auth";
 import { getBacklogStats, getFitting, type BacklogItem } from "@/lib/backlog-queries";
 import { TIME_BUDGETS, budgetMinutes, formatDuration, paceEstimate } from "@/lib/backlog";
 
-export const metadata = { title: "Сколько у меня времени" };
 export const dynamic = "force-dynamic";
+
+type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 export default async function BacklogPage({
   searchParams,
+  params,
 }: {
   searchParams: Promise<{ budget?: string }>;
+  params: Promise<{ locale: string }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login?next=/backlog");
 
-  const { budget: budgetKey } = await searchParams;
+  const [{ budget: budgetKey }, { locale }] = await Promise.all([searchParams, params]);
+  const t = await getTranslations("backlog");
+  const time = await getTranslations("time");
+
   const budget = budgetMinutes(budgetKey ?? "") ?? null;
 
   const [stats, fitting] = await Promise.all([
     getBacklogStats(),
-    budget ? getFitting(budget) : Promise.resolve(null),
+    budget ? getFitting(locale, budget) : Promise.resolve(null),
   ]);
 
   if (!stats) redirect("/login?next=/backlog");
@@ -36,57 +43,53 @@ export default async function BacklogPage({
       <SiteHeader />
 
       <div className="mx-auto max-w-[1100px] px-4 py-8 md:px-10">
-        <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">
-          Сколько у меня времени
-        </h1>
-        <p className="mt-2 max-w-[60ch] text-[15px] text-muted">
-          Список — это часы, а не строчки. Здесь видно, во что он превращается, и что из него
-          реально закрыть за вечер.
-        </p>
+        <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">{t("title")}</h1>
+        <p className="mt-2 max-w-[60ch] text-[15px] text-muted">{t("intro")}</p>
 
         {totalAhead === 0 && stats.completedCount === 0 ? (
-          <Empty />
+          <Empty text={t("emptyText")} cta={t("getTitles")} />
         ) : (
           <>
             <section className="mt-8 grid gap-4 sm:grid-cols-3">
               <Stat
-                label="Впереди"
-                value={formatDuration(totalAhead)}
-                sub={`${stats.plannedCount + stats.watchingCount} тайтлов`}
+                label={t("ahead")}
+                value={formatDuration(time, totalAhead)}
+                sub={t("inProgress", { count: stats.plannedCount + stats.watchingCount })}
                 accent
               />
               <Stat
-                label="Начато и не закончено"
-                value={formatDuration(stats.watchingMinutes)}
-                sub={`${stats.watchingCount} в процессе`}
+                label={t("started")}
+                value={formatDuration(time, stats.watchingMinutes)}
+                sub={t("inProgress", { count: stats.watchingCount })}
               />
               <Stat
-                label="Уже посмотрено"
-                value={formatDuration(stats.completedMinutes)}
-                sub={`${stats.completedCount} закрыто`}
+                label={t("watched")}
+                value={formatDuration(time, stats.completedMinutes)}
+                sub={t("closed", { count: stats.completedCount })}
               />
             </section>
 
             {totalAhead > 0 && (
               <section className="mt-4 rounded-2xl border border-hairline bg-white/[0.02] p-5">
                 <div className="font-display text-[13px] tracking-[0.14em] text-dim">
-                  ЧТОБЫ ЗАКРЫТЬ ВСЁ
+                  {t("toFinishAll")}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
-                  <Pace label="по часу в день" value={paceEstimate(totalAhead, 60)} />
-                  <Pace label="по 2 часа в день" value={paceEstimate(totalAhead, 120)} />
-                  <Pace label="по выходным, 6 ч" value={paceEstimate(totalAhead, 6 * 60 / 7)} />
+                  <Pace label={t("perHour")} value={paceEstimate(time, totalAhead, 60)} />
+                  <Pace label={t("perTwoHours")} value={paceEstimate(time, totalAhead, 120)} />
+                  <Pace
+                    label={t("perWeekend")}
+                    value={paceEstimate(time, totalAhead, (6 * 60) / 7)}
+                  />
                 </div>
               </section>
             )}
 
             <section className="mt-10">
               <h2 className="font-display text-[21px] font-semibold tracking-[-0.02em]">
-                Что успею посмотреть
+                {t("whatFits")}
               </h2>
-              <p className="mt-1 text-[13px] text-dim">
-                Начатое идёт первым — логичнее закрыть его, чем начинать новое.
-              </p>
+              <p className="mt-1 text-[13px] text-dim">{t("whatFitsNote")}</p>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {TIME_BUDGETS.map((b) => (
@@ -100,18 +103,24 @@ export default async function BacklogPage({
                         : "border border-hairline bg-white/[0.03] text-muted hover:border-white/20 hover:text-foreground"
                     }`}
                   >
-                    {b.label}
-                    <span className="ml-1.5 text-[11px] opacity-60">{b.hint}</span>
+                    {t(b.key)}
+                    <span className="ml-1.5 text-[11px] opacity-60">
+                      {time("hours", { count: b.hours })}
+                    </span>
                   </Link>
                 ))}
                 {budgetKey && (
-                  <Link href="/backlog" scroll={false} className="self-center px-2 text-[13px] text-dim hover:text-foreground">
-                    Сбросить
+                  <Link
+                    href="/backlog"
+                    scroll={false}
+                    className="self-center px-2 text-[13px] text-dim hover:text-foreground"
+                  >
+                    {t("reset")}
                   </Link>
                 )}
               </div>
 
-              {fitting && <Results fitting={fitting} budget={budget ?? 0} />}
+              {fitting && <Results fitting={fitting} budget={budget ?? 0} t={t} time={time} />}
             </section>
           </>
         )}
@@ -128,20 +137,24 @@ export default async function BacklogPage({
 function Results({
   fitting,
   budget,
+  t,
+  time,
 }: {
   fitting: { fits: BacklogItem[]; tooLong: BacklogItem[] };
   budget: number;
+  t: Translate;
+  time: Translate;
 }) {
   if (fitting.fits.length === 0) {
     return (
       <div className="mt-6 rounded-2xl border border-dashed border-white/10 px-6 py-10 text-center">
-        <p className="text-muted">
-          За {formatDuration(budget)} целиком не закрыть ничего из списка.
-        </p>
+        <p className="text-muted">{t("nothingFits", { time: formatDuration(time, budget) })}</p>
         {fitting.tooLong.length > 0 && (
           <p className="mt-2 text-[13px] text-dim">
-            Ближе всего — «{fitting.tooLong[0].title}», на неё нужно{" "}
-            {formatDuration(fitting.tooLong[0].minutes)}.
+            {t("closest", {
+              title: fitting.tooLong[0].title,
+              time: formatDuration(time, fitting.tooLong[0].minutes),
+            })}
           </p>
         )}
       </div>
@@ -151,22 +164,19 @@ function Results({
   return (
     <>
       <div className="mt-5 text-[13px] text-subtle">
-        Помещается: <span className="text-accent">{fitting.fits.length}</span>
+        {t("fits")} <span className="text-accent">{fitting.fits.length}</span>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-[18px]">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-[18px]">
         {fitting.fits.map((item, i) => (
-          <div key={item.id} className="flex w-[186px] flex-col gap-2">
+          <div key={item.id} className="flex flex-col gap-2">
             <AnimeCard item={item} deg={150 + (i % 8) * 6} />
             <div className="text-[12px] text-muted">
-              {formatDuration(item.minutes)}
+              {formatDuration(time, item.minutes)}
               {item.estimated && (
-                <span className="ml-1 text-dim" title="Длительность неизвестна, взята типовая">
+                <span className="ml-1 text-dim" title={t("estimatedHint")}>
                   ≈
                 </span>
-              )}
-              {item.episodesCount && item.format !== "Movie" && (
-                <span className="text-dim"> · {item.episodesCount} эп.</span>
               )}
             </div>
           </div>
@@ -217,15 +227,15 @@ function Pace({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Empty() {
+function Empty({ text, cta }: { text: string; cta: string }) {
   return (
     <div className="mt-10 rounded-2xl border border-dashed border-white/10 px-6 py-16 text-center">
-      <p className="text-muted">Список пуст — считать нечего.</p>
+      <p className="text-muted">{text}</p>
       <Link
         href="/catalog"
         className="mt-4 inline-block rounded-full bg-accent px-6 py-3 text-[15px] font-bold text-ink transition-colors hover:bg-accent-soft"
       >
-        Набрать тайтлов
+        {cta}
       </Link>
     </div>
   );

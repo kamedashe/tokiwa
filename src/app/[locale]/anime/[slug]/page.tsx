@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
@@ -13,14 +14,15 @@ import { prisma } from "@/lib/prisma";
 import { getEntry } from "@/lib/watchlist";
 import { visitorCountry } from "@/lib/geo";
 import { formatDuration, remainingMinutes } from "@/lib/backlog";
+import { pickTitle } from "@/lib/title-locale";
 
 // Страница показывает статус тайтла у текущего пользователя.
 export const dynamic = "force-dynamic";
 
-const STATUS_RU: Record<string, string> = {
-  releasing: "Выходит",
-  finished: "Завершён",
-  not_yet_aired: "Анонс",
+const STATUS_KEYS: Record<string, string> = {
+  releasing: "statusReleasing",
+  finished: "statusFinished",
+  not_yet_aired: "statusAnnounced",
 };
 
 async function getTitle(slug: string) {
@@ -36,13 +38,13 @@ async function getTitle(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const title = await getTitle(slug);
-  if (!title) return { title: "Тайтл не найден" };
+  if (!title) return {};
 
-  const display = title.titleRu ?? title.title;
+  const display = pickTitle(title, locale).title;
 
   return {
     title: display,
@@ -55,19 +57,27 @@ export async function generateMetadata({
   };
 }
 
-export default async function TitlePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function TitlePage({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug, locale } = await params;
+  const t = await getTranslations("title");
   const title = await getTitle(slug);
   if (!title) notFound();
 
+  const names = pickTitle(title, locale);
+
   const [entry, country] = await Promise.all([getEntry(title.id), visitorCountry()]);
+  const time = await getTranslations("time");
   const timeLeft = remainingMinutes(title, entry?.progress ?? 0);
 
   const meta = [
     title.format,
     title.year,
-    title.status ? STATUS_RU[title.status] : null,
-    title.episodesCount ? `${title.episodesCount} эп.` : null,
+    title.status ? t(STATUS_KEYS[title.status]) : null,
+    title.episodesCount ? t("episodes", { count: title.episodesCount }) : null,
   ].filter(Boolean);
 
   return (
@@ -79,7 +89,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
           <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-hairline bg-surface">
             <Artwork
               src={title.posterUrl}
-              alt={title.title}
+              alt={names.title}
               hue={title.hue}
               sizes="280px"
               priority
@@ -118,11 +128,13 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
 
         <div className="min-w-0">
           <h1 className="font-display text-[clamp(28px,3.4vw,44px)] font-bold leading-[1.02] tracking-[-0.03em]">
-            {title.titleRu ?? title.title}
+            {names.title}
           </h1>
-          {(title.titleRu || title.titleJp) && (
+          {(names.original || title.titleJp) && (
             <div className="mt-2 text-subtle">
-              {[title.titleRu ? title.title : null, title.titleJp].filter(Boolean).join(" · ")}
+              {[names.original, title.titleJp]
+                .filter((v, i, a) => v && a.indexOf(v) === i)
+                .join(" · ")}
             </div>
           )}
 
@@ -136,7 +148,7 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
 
           <section className="mt-10">
             <h2 className="mb-4 font-display text-[21px] font-semibold tracking-[-0.02em]">
-              Прогресс
+              {t("progress")}
             </h2>
             <ProgressStepper
               titleId={title.id}
@@ -145,7 +157,8 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
             />
             {timeLeft > 0 && (
               <p className="mt-4 text-[13px] text-subtle">
-                Досмотреть: <span className="text-accent">{formatDuration(timeLeft)}</span>
+                {t("timeLeft")}{" "}
+                <span className="text-accent">{formatDuration(time, timeLeft)}</span>
               </p>
             )}
           </section>
@@ -153,10 +166,10 @@ export default async function TitlePage({ params }: { params: Promise<{ slug: st
           {title.watchLinks.length > 0 && (
             <section className="mt-10">
               <h2 className="mb-1 font-display text-[21px] font-semibold tracking-[-0.02em]">
-                Где посмотреть
+                {t("whereToWatch")}
               </h2>
               <p className="mb-4 text-[13px] text-dim">
-                Лицензионные сервисы — там дубляж и качество, но встроить их к себе нельзя.
+                {t("whereToWatchNote")}
               </p>
               <WatchLinks links={title.watchLinks} country={country} />
             </section>

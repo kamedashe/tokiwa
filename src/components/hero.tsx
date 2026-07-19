@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { Parallax } from "@/components/parallax";
 import { Artwork } from "@/components/artwork";
 import { WatchlistButton } from "@/components/watchlist-button";
@@ -6,12 +7,14 @@ import { SCANLINES_WIDE } from "@/lib/gradient";
 import { getEntry } from "@/lib/watchlist";
 import type { HeroTitle } from "@/lib/queries";
 
-const FORMAT_RU: Record<string, string> = {
-  TV: "ТВ-сериал",
-  Movie: "Фильм",
+// Форматы оставляем как есть: TV, Movie, OVA, ONA — их пишут латиницей
+// на всех языках, включая японский.
+const FORMATS: Record<string, string> = {
+  TV: "TV",
+  Movie: "Movie",
   OVA: "OVA",
   ONA: "ONA",
-  Special: "Спешл",
+  Special: "Special",
 };
 
 /** Обрезаем синопсис по границе предложения — иначе ломает вёрстку блока. */
@@ -25,6 +28,7 @@ function trim(text: string | null, max = 220) {
 }
 
 export async function Hero({ item }: { item: HeroTitle }) {
+  const t = await getTranslations("home");
   const entry = await getEntry(item.id);
   const inList = entry !== null;
 
@@ -87,16 +91,16 @@ export async function Hero({ item }: { item: HeroTitle }) {
       />
 
       <div className="absolute right-10 top-6 font-display text-[11px] tracking-[0.16em] text-white/40 max-md:hidden">
-        // KEY VISUAL — {item.title}
+        // {t("keyVisual")} — {item.title}
       </div>
 
       <div data-depth="-8" className="absolute bottom-14 left-6 max-w-[620px] md:left-16">
         <div className="mb-[18px] flex items-center gap-3">
           <span className="rounded-md bg-accent px-2.5 py-[5px] text-xs font-bold tracking-[0.04em] text-ink">
-            В ЦЕНТРЕ ВНИМАНИЯ
+            {t("spotlight")}
           </span>
           <span className="text-[13px] text-muted">
-            {[item.format ? (FORMAT_RU[item.format] ?? item.format) : null, item.year]
+            {[item.format ? (FORMATS[item.format] ?? item.format) : null, item.year]
               .filter(Boolean)
               .join(" · ")}
           </span>
@@ -127,7 +131,7 @@ export async function Hero({ item }: { item: HeroTitle }) {
               className="size-0 border-y-[6px] border-l-[9px] border-y-transparent border-l-ink"
               aria-hidden
             />
-            Смотреть
+            {t("watch")}
           </Link>
 
           <WatchlistButton titleId={item.id} initialInList={inList} />

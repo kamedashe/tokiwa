@@ -37,53 +37,59 @@ export function remainingMinutes(title: TimedTitle, progress: number): number {
 }
 
 /** «312 ч 40 мин» → человекочитаемо и коротко. */
-export function formatDuration(minutes: number): string {
-  if (minutes <= 0) return "0 мин";
+/** Переводчик из next-intl — принимаем его, чтобы модуль не зависел от React. */
+type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
+/**
+ * Разбивает минуты на часы и минуты. Чистая функция: само склонение и порядок
+ * слов у каждого языка свои, поэтому склейкой строк занимается словарь.
+ */
+export function splitDuration(minutes: number): { hours: number; minutes: number } {
+  return { hours: Math.floor(minutes / 60), minutes: minutes % 60 };
+}
 
-  if (hours === 0) return `${mins} мин`;
-  if (hours < 100 && mins > 0) return `${hours} ч ${mins} мин`;
-  return `${hours} ч`;
+/** «3 ч 4 мин» на языке пользователя. */
+export function formatDuration(t: Translate, total: number): string {
+  if (total <= 0) return t('minutes', { count: 0 });
+
+  const { hours, minutes } = splitDuration(total);
+
+  if (hours === 0) return t('minutes', { count: minutes });
+  // У длинных сроков минуты уже не важны и только мешают читать.
+  if (hours < 100 && minutes > 0) return t('hoursMinutes', { hours, minutes });
+  return t('hours', { count: hours });
 }
 
 /**
  * Сколько это в днях при заданном темпе. Нужен, чтобы абстрактные «312 часов»
- * превратились во что-то осязаемое.
+ * превратились во что-то осязаемое. Склонение числительных берёт на себя
+ * ICU-разметка в словаре — в русском и украинском формы разные.
  */
-export function paceEstimate(minutes: number, minutesPerDay: number): string {
-  if (minutes <= 0 || minutesPerDay <= 0) return "";
+export function paceEstimate(t: Translate, minutes: number, minutesPerDay: number): string {
+  if (minutes <= 0 || minutesPerDay <= 0) return '';
 
   const days = Math.ceil(minutes / minutesPerDay);
-  if (days <= 1) return "меньше дня";
-  if (days < 14) return `${days} ${plural(days, "день", "дня", "дней")}`;
+  if (days <= 1) return t('lessThanDay');
+  if (days < 14) return t('days', { count: days });
 
   const weeks = Math.round(days / 7);
-  if (weeks < 9) return `${weeks} ${plural(weeks, "неделя", "недели", "недель")}`;
+  if (weeks < 9) return t('weeks', { count: weeks });
 
   const months = Math.round(days / 30);
-  if (months < 24) return `${months} ${plural(months, "месяц", "месяца", "месяцев")}`;
+  if (months < 24) return t('months', { count: months });
 
-  const years = (days / 365).toFixed(1).replace(".", ",");
-  return `${years} года`;
+  return t('years', { count: (days / 365).toFixed(1) });
 }
 
-function plural(n: number, one: string, few: string, many: string): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
-  return many;
-}
-
-/** Пресеты бюджета времени. Значения в минутах. */
+/**
+ * Пресеты бюджета времени. Подписи лежат в словаре под теми же ключами
+ * (backlog.evening и так далее), здесь только числа.
+ */
 export const TIME_BUDGETS = [
-  { key: "evening", label: "Вечер", hint: "2 часа", minutes: 120 },
-  { key: "night", label: "Ночь напролёт", hint: "6 часов", minutes: 360 },
-  { key: "weekend", label: "Выходные", hint: "12 часов", minutes: 720 },
-  { key: "vacation", label: "Отпуск", hint: "40 часов", minutes: 2400 },
+  { key: "evening", hours: 2, minutes: 120 },
+  { key: "night", hours: 6, minutes: 360 },
+  { key: "weekend", hours: 12, minutes: 720 },
+  { key: "vacation", hours: 40, minutes: 2400 },
 ] as const;
 
 export type BudgetKey = (typeof TIME_BUDGETS)[number]["key"];

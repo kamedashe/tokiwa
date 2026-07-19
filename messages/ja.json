@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "siteName": "TokiWa",
+    "tagline": "アニメ管理",
+    "description": "アニメ視聴管理：リスト、話数の進捗、そして積んだ作品に必要な時間を計算します。"
+  },
+  "nav": {
+    "home": "ホーム",
+    "catalog": "カタログ",
+    "seasons": "シーズン",
+    "top": "トップ100",
+    "myList": "マイリスト",
+    "time": "時間",
+    "search": "作品を検索…",
+    "searchLabel": "作品を検索",
+    "signIn": "ログイン",
+    "signOut": "ログアウト",
+    "admin": "管理",
+    "backlog": "残り時間",
+    "mainNav": "メインナビゲーション",
+    "toSite": "サイトへ →"
+  },
+  "home": {
+    "spotlight": "注目作品",
+    "watch": "見る",
+    "addToList": "＋ リストに追加",
+    "inList": "✓ リスト済み",
+    "keyVisual": "KEY VISUAL",
+    "continueWatching": "続きから見る",
+    "yourList": "マイリスト",
+    "trending": "人気の作品",
+    "season": "シーズン · {label}",
+    "highRated": "高評価",
+    "topHundred": "トップ100",
+    "titlesCount": "{count}作品",
+    "seeAll": "すべて →",
+    "emptyTitle": "カタログが空です",
+    "emptyText": "メタデータがまだ読み込まれていません。{command} を実行すると Jikan から作品を取得します。",
+    "refresh": "更新"
+  },
+  "catalog": {
+    "title": "カタログ",
+    "genre": "ジャンル",
+    "sort": "並び替え",
+    "all": "すべて",
+    "byScore": "評価順",
+    "byYear": "新しい順",
+    "byTitle": "名前順",
+    "found": "「{query}」の検索結果 — {count}件",
+    "nothingFound": "見つかりませんでした。",
+    "pages": "ページ",
+    "prev": "← 前へ",
+    "next": "次へ →",
+    "titlesCount": "{count}作品"
+  },
+  "seasons": {
+    "current": "今期",
+    "others": "他のシーズン",
+    "allSeasons": "← すべてのシーズン",
+    "winter": "冬",
+    "spring": "春",
+    "summer": "夏",
+    "fall": "秋"
+  },
+  "title": {
+    "progress": "進捗",
+    "plusOne": "＋1話",
+    "allWatched": "視聴完了",
+    "markAll": "すべて視聴済みに",
+    "addEpisode": "話数を増やす",
+    "removeEpisode": "話数を減らす",
+    "timeLeft": "残り：",
+    "whereToWatch": "配信サイト",
+    "whereToWatchNote": "公式の配信サービスです。埋め込みには対応していないため、外部リンクになります。",
+    "mayNotWork": "お住まいの国では利用できない場合があります",
+    "ad": "広告",
+    "notFound": "作品が見つかりません",
+    "episodes": "全{count}話",
+    "statusReleasing": "放送中",
+    "statusFinished": "放送終了",
+    "statusAnnounced": "放送予定"
+  },
+  "status": {
+    "watching": "見ている",
+    "planned": "見たい",
+    "completed": "見た",
+    "dropped": "中断"
+  },
+  "myList": {
+    "title": "マイリスト",
+    "emptyTitle": "リストが空です",
+    "emptyText": "「＋ リストに追加」で作品を追加すると、ここに表示されます。視聴中の作品はホームの「続きから見る」に並びます。",
+    "toCatalog": "カタログへ"
+  },
+  "backlog": {
+    "title": "残り時間",
+    "intro": "リストは行数ではなく時間です。全部でどれくらいになるのか、今夜どれを見終えられるのかが分かります。",
+    "ahead": "これから",
+    "started": "視聴中・未完",
+    "watched": "視聴済み",
+    "inProgress": "{count}作品が進行中",
+    "closed": "{count}作品が完了",
+    "toFinishAll": "すべて見終えるには",
+    "perHour": "1日1時間なら",
+    "perTwoHours": "1日2時間なら",
+    "perWeekend": "週末6時間なら",
+    "whatFits": "今日見終えられる作品",
+    "whatFitsNote": "視聴中の作品が先です。新しく始めるより、まず終わらせるほうが理にかなっています。",
+    "evening": "一晩",
+    "night": "徹夜",
+    "weekend": "週末",
+    "vacation": "長期休暇",
+    "hoursShort": "{count}時間",
+    "fits": "該当：",
+    "reset": "リセット",
+    "nothingFits": "{time}で見終えられる作品はありません。",
+    "closest": "一番近いのは「{title}」で、{time}必要です。",
+    "emptyText": "リストが空なので計算できません。",
+    "getTitles": "作品を探す",
+    "estimatedHint": "話数の長さが不明なため、標準的な値を使用しています"
+  },
+  "time": {
+    "minutes": "{count}分",
+    "hours": "{count}時間",
+    "hoursMinutes": "{hours}時間{minutes}分",
+    "lessThanDay": "1日未満",
+    "days": "{count}日",
+    "weeks": "{count}週間",
+    "months": "{count}か月",
+    "years": "{count}年"
+  },
+  "auth": {
+    "signInTitle": "TokiWa にログイン",
+    "signInIntro": "「見ている」「見た」のリストを保存し、止めた話数から再開するために必要です。",
+    "withGoogle": "Google でログイン",
+    "withDiscord": "Discord でログイン",
+    "dataNote": "取得するのは名前・アバター・メールアドレスのみです。あなたの名義で投稿することはありません。",
+    "agreeTo": "ログインすると<link>プライバシーポリシー</link>に同意したものとみなされます。",
+    "profile": "プロフィール",
+    "errorNotLinked": "このメールアドレスは別の方法でログイン済みです。最初に使ったサービスでログインしてください。",
+    "errorAccessDenied": "ログインが拒否されました。メールアドレスが未確認の可能性があります。",
+    "errorVerification": "ログインリンクの有効期限が切れました。もう一度お試しください。",
+    "errorGeneric": "ログインできませんでした。もう一度お試しください。"
+  },
+  "footer": {
+    "privacy": "プライバシーポリシー",
+    "sources": "アニメの情報は MyAnimeList、Shikimori、AniList から取得しています。動画の配信・保存は行っていません。"
+  },
+  "language": {
+    "label": "言語",
+    "switch": "言語を変更"
+  }
+}

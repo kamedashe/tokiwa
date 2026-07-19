@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useState, useTransition } from "react";
 import { setProgress } from "@/lib/watchlist";
 
@@ -17,6 +18,7 @@ export function ProgressStepper({
   initialProgress: number;
   episodesCount: number | null;
 }) {
+  const t = useTranslations("title");
   const router = useRouter();
   const [value, setValue] = useState(initialProgress);
   const [pending, startTransition] = useTransition();
@@ -51,7 +53,7 @@ export function ProgressStepper({
           disabled={pending || done}
           className="rounded-full bg-accent px-6 py-3 text-[15px] font-bold text-ink transition-colors hover:bg-accent-soft disabled:opacity-40"
         >
-          {done ? "Всё посмотрено" : "+1 серия"}
+          {done ? t("allWatched") : t("plusOne")}
         </button>
 
         <div className="flex items-center gap-2">
@@ -59,7 +61,7 @@ export function ProgressStepper({
             type="button"
             onClick={() => commit(value - 1)}
             disabled={pending || value === 0}
-            aria-label="Убрать серию"
+            aria-label={t("removeEpisode")}
             className="size-9 rounded-lg border border-hairline text-muted transition-colors hover:border-white/20 hover:text-foreground disabled:opacity-40"
           >
             −
@@ -74,7 +76,7 @@ export function ProgressStepper({
             type="button"
             onClick={() => commit(value + 1)}
             disabled={pending || done}
-            aria-label="Добавить серию"
+            aria-label={t("addEpisode")}
             className="size-9 rounded-lg border border-hairline text-muted transition-colors hover:border-white/20 hover:text-foreground disabled:opacity-40"
           >
             +
@@ -88,7 +90,7 @@ export function ProgressStepper({
             disabled={pending}
             className="text-[13px] text-subtle transition-colors hover:text-accent disabled:opacity-40"
           >
-            Отметить всё
+            {t("markAll")}
           </button>
         )}
       </div>

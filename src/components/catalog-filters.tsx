@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { SORTS, type SortKey } from "@/lib/queries";
 
 interface Genre {
@@ -35,12 +36,20 @@ export function CatalogFilters({
   genre?: string;
   sort: SortKey;
 }) {
+  const t = useTranslations("catalog");
   const base = { q, genre, sort };
+
+  // Подписи сортировок лежат под catalog.byScore / byYear / byTitle.
+  const SORT_KEYS: Record<SortKey, string> = {
+    score: "byScore",
+    year: "byYear",
+    title: "byTitle",
+  };
 
   return (
     <div className="mb-7 flex flex-col gap-4">
       <div>
-        <div className="mb-2 font-display text-[11px] tracking-[0.16em] text-dim">ЖАНР</div>
+        <div className="mb-2 font-display text-[11px] tracking-[0.16em] text-dim">{t("genre")}</div>
         {/*
           На телефоне пятнадцать жанров переносами занимают пол-экрана,
           поэтому там это лента с горизонтальным скроллом, а на широком —
@@ -48,7 +57,7 @@ export function CatalogFilters({
         */}
         <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
           <Chip href={buildHref(base, { genre: null })} active={!genre}>
-            Все
+            {t("all")}
           </Chip>
 
           {genres.map((g) => (
@@ -61,11 +70,11 @@ export function CatalogFilters({
       </div>
 
       <div>
-        <div className="mb-2 font-display text-[11px] tracking-[0.16em] text-dim">СОРТИРОВКА</div>
+        <div className="mb-2 font-display text-[11px] tracking-[0.16em] text-dim">{t("sort")}</div>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(SORTS) as SortKey[]).map((key) => (
             <Chip key={key} href={buildHref(base, { sort: key })} active={sort === key}>
-              {SORTS[key].label}
+              {t(SORT_KEYS[key])}
             </Chip>
           ))}
         </div>

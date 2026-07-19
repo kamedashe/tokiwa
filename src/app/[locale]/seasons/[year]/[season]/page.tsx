@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
@@ -20,26 +21,29 @@ function parse(year: string, season: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ year: string; season: string }>;
+  params: Promise<{ year: string; season: string; locale: string }>;
 }): Promise<Metadata> {
-  const { year, season } = await params;
+  const { year, season, locale } = await params;
   const parsed = parse(year, season);
-  if (!parsed) return { title: "Сезон не найден" };
+  if (!parsed) return {};
 
-  return { title: seasonLabel(parsed.season, parsed.year) };
+  const t = await getTranslations({ locale, namespace: "seasons" });
+  return { title: seasonLabel(t, parsed.season, parsed.year) };
 }
 
 export default async function SeasonPage({
   params,
 }: {
-  params: Promise<{ year: string; season: string }>;
+  params: Promise<{ year: string; season: string; locale: string }>;
 }) {
-  const { year, season } = await params;
+  const { year, season, locale } = await params;
+  const t = await getTranslations("seasons");
+  const c = await getTranslations("catalog");
 
   const parsed = parse(year, season);
   if (!parsed) notFound();
 
-  const items = await listTitles({ season: parsed.season, year: parsed.year }, 100);
+  const items = await listTitles(locale, { season: parsed.season, year: parsed.year }, 100);
   if (items.length === 0) notFound();
 
   return (
@@ -48,14 +52,15 @@ export default async function SeasonPage({
 
       <div className="px-4 pt-8 md:px-10">
         <Link href="/seasons" className="text-[13px] text-subtle hover:text-foreground">
-          ← Все сезоны
+          {t("allSeasons")}
         </Link>
       </div>
 
       <TitleGrid
-        heading={seasonLabel(parsed.season, parsed.year)}
-        subheading={`${items.length} тайтлов`}
+        heading={seasonLabel(t, parsed.season, parsed.year)}
+        subheading={c("titlesCount", { count: items.length })}
         items={items}
+        emptyText={c("nothingFound")}
       />
       <SiteFooter />
       <div className="h-20 md:hidden" />

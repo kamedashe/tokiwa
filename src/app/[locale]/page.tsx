@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -11,11 +12,13 @@ import { getContinueWatching } from "@/lib/watchlist";
 // поэтому рендерится на каждый запрос, а не отдаётся статикой.
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  const hero = await getHero();
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
+  const hero = await getHero(locale);
   const [rows, continueWatching] = await Promise.all([
-    getHomeRows(hero?.id),
-    getContinueWatching(),
+    getHomeRows(locale, hero?.id),
+    getContinueWatching(locale),
   ]);
 
   if (!hero) return <EmptyState />;
@@ -25,8 +28,8 @@ export default async function HomePage() {
     continueWatching.length > 0
       ? [
           {
-            title: "Продолжить просмотр",
-            count: "ваш список",
+            key: "continueWatching",
+            count: null,
             href: "/my",
             items: continueWatching,
           },
@@ -39,7 +42,7 @@ export default async function HomePage() {
       <SiteHeader current="/" />
       <Hero item={hero} />
       {allRows.map((row, i) => (
-        <CardRow key={row.title} row={row} index={i} />
+        <CardRow key={row.key} row={row} index={i} />
       ))}
       <div className="h-12" />
       <SiteFooter />

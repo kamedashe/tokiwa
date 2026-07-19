@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useState, useTransition } from "react";
 import { setStatus } from "@/lib/watchlist";
-import { STATUS_ORDER, WATCH_STATUSES } from "@/lib/watch-status";
+import { STATUS_ORDER } from "@/lib/watch-status";
 
 /** Выбор статуса на странице тайтла: смотрю / запланировано / посмотрел / брошено. */
 export function StatusPicker({
@@ -13,6 +14,7 @@ export function StatusPicker({
   titleId: number;
   initialStatus: string | null;
 }) {
+  const t = useTranslations("status");
   const router = useRouter();
   const [current, setCurrent] = useState(initialStatus);
   const [pending, startTransition] = useTransition();
@@ -49,7 +51,7 @@ export function StatusPicker({
               : "border border-hairline bg-white/[0.03] text-muted hover:border-white/20 hover:text-foreground"
           }`}
         >
-          {WATCH_STATUSES[key]}
+          {t(key)}
         </button>
       ))}
     </div>

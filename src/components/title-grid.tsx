@@ -8,12 +8,14 @@ export function TitleGrid({
   subheading,
   items,
   level = 1,
+  emptyText,
 }: {
   heading?: string;
   subheading?: string;
   items: CardTitle[];
   /** На /my сетки идут секциями внутри страницы, там заголовок должен быть h2. */
   level?: 1 | 2;
+  emptyText: string;
 }) {
   const Heading = level === 1 ? "h1" : "h2";
 
@@ -31,7 +33,7 @@ export function TitleGrid({
       )}
 
       {items.length === 0 ? (
-        <p className="text-subtle">Ничего не нашлось.</p>
+        <p className="text-subtle">{emptyText}</p>
       ) : (
         // Сетка вместо flex-wrap: колонки ровные, а на телефоне их две
         // вместо одинокой карточки посреди пустоты.

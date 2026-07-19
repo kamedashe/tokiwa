@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Постраничная навигация. Показываем края и окно вокруг текущей страницы,
@@ -13,19 +14,21 @@ export function Pagination({
   pages: number;
   hrefFor: (page: number) => string;
 }) {
+  const t = useTranslations("catalog");
+
   if (pages <= 1) return null;
 
   const window = new Set<number>([1, pages, page, page - 1, page + 1]);
   const visible = [...window].filter((p) => p >= 1 && p <= pages).sort((a, b) => a - b);
 
   return (
-    <nav className="mt-10 flex items-center justify-center gap-2" aria-label="Страницы">
+    <nav className="mt-10 flex items-center justify-center gap-2" aria-label={t("pages")}>
       {page > 1 && (
         <Link
           href={hrefFor(page - 1)}
           className="rounded-lg border border-hairline px-3 py-2 text-[13px] text-muted transition-colors hover:border-white/20 hover:text-foreground"
         >
-          ← Назад
+          {t("prev")}
         </Link>
       )}
 
@@ -51,7 +54,7 @@ export function Pagination({
           href={hrefFor(page + 1)}
           className="rounded-lg border border-hairline px-3 py-2 text-[13px] text-muted transition-colors hover:border-white/20 hover:text-foreground"
         >
-          Вперёд →
+          {t("next")}
         </Link>
       )}
     </nav>

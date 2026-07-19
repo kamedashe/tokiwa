@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "siteName": "TokiWa",
+    "tagline": "anime tracker",
+    "description": "Anime tracker: lists, episode progress, and how many hours your backlog actually takes."
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "seasons": "Seasons",
+    "top": "Top 100",
+    "myList": "My list",
+    "time": "Time",
+    "search": "Search titles…",
+    "searchLabel": "Search titles",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "admin": "Admin",
+    "backlog": "How much time I have",
+    "mainNav": "Main navigation",
+    "toSite": "To site →"
+  },
+  "home": {
+    "spotlight": "SPOTLIGHT",
+    "watch": "Watch",
+    "addToList": "+ Add to list",
+    "inList": "✓ In list",
+    "keyVisual": "KEY VISUAL",
+    "continueWatching": "Continue watching",
+    "yourList": "your list",
+    "trending": "Trending now",
+    "season": "Season · {label}",
+    "highRated": "Highly rated",
+    "topHundred": "top 100",
+    "titlesCount": "{count} titles",
+    "seeAll": "All →",
+    "emptyTitle": "Catalog is empty",
+    "emptyText": "No metadata loaded yet. Run {command} — it pulls titles from Jikan into the database.",
+    "refresh": "Refresh"
+  },
+  "catalog": {
+    "title": "Catalog",
+    "genre": "GENRE",
+    "sort": "SORT",
+    "all": "All",
+    "byScore": "By score",
+    "byYear": "Newest",
+    "byTitle": "A–Z",
+    "found": "for “{query}” — {count}",
+    "nothingFound": "Nothing found.",
+    "pages": "Pages",
+    "prev": "← Back",
+    "next": "Next →",
+    "titlesCount": "{count} titles"
+  },
+  "seasons": {
+    "current": "current",
+    "others": "OTHER SEASONS",
+    "allSeasons": "← All seasons",
+    "winter": "Winter",
+    "spring": "Spring",
+    "summer": "Summer",
+    "fall": "Fall"
+  },
+  "title": {
+    "progress": "Progress",
+    "plusOne": "+1 episode",
+    "allWatched": "All watched",
+    "markAll": "Mark all",
+    "addEpisode": "Add episode",
+    "removeEpisode": "Remove episode",
+    "timeLeft": "Left to watch:",
+    "whereToWatch": "Where to watch",
+    "whereToWatchNote": "Licensed services — dubs and quality live there, but they cannot be embedded here.",
+    "mayNotWork": "MAY NOT WORK IN YOUR COUNTRY",
+    "ad": "ad",
+    "notFound": "Title not found",
+    "episodes": "{count} ep.",
+    "statusReleasing": "Airing",
+    "statusFinished": "Finished",
+    "statusAnnounced": "Announced"
+  },
+  "status": {
+    "watching": "Watching",
+    "planned": "Planned",
+    "completed": "Completed",
+    "dropped": "Dropped"
+  },
+  "myList": {
+    "title": "My list",
+    "emptyTitle": "Your list is empty",
+    "emptyText": "Add titles with the “+ Add to list” button — they show up here, and whatever you are watching appears on the home page under “Continue watching”.",
+    "toCatalog": "Browse catalog"
+  },
+  "backlog": {
+    "title": "How much time I have",
+    "intro": "A watchlist is hours, not rows. Here you see what it adds up to, and what you can realistically finish tonight.",
+    "ahead": "Ahead",
+    "started": "Started, unfinished",
+    "watched": "Already watched",
+    "inProgress": "{count} in progress",
+    "closed": "{count} finished",
+    "toFinishAll": "TO FINISH EVERYTHING",
+    "perHour": "at an hour a day",
+    "perTwoHours": "at two hours a day",
+    "perWeekend": "weekends only, 6 h",
+    "whatFits": "What I can finish",
+    "whatFitsNote": "Started titles come first — finishing beats starting something new.",
+    "evening": "An evening",
+    "night": "All night",
+    "weekend": "A weekend",
+    "vacation": "A vacation",
+    "hoursShort": "{count} hours",
+    "fits": "Fits:",
+    "reset": "Reset",
+    "nothingFits": "Nothing in your list fits into {time}.",
+    "closest": "Closest is “{title}” — it needs {time}.",
+    "emptyText": "Your list is empty, nothing to count.",
+    "getTitles": "Find some titles",
+    "estimatedHint": "Duration unknown, using a typical value"
+  },
+  "time": {
+    "minutes": "{count} min",
+    "hours": "{count} h",
+    "hoursMinutes": "{hours} h {minutes} min",
+    "lessThanDay": "less than a day",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "weeks": "{count, plural, one {# week} other {# weeks}}",
+    "months": "{count, plural, one {# month} other {# months}}",
+    "years": "{count} years"
+  },
+  "auth": {
+    "signInTitle": "Sign in to TokiWa",
+    "signInIntro": "Needed to keep your watching and completed lists, and to pick up from the episode you stopped at.",
+    "withGoogle": "Continue with Google",
+    "withDiscord": "Continue with Discord",
+    "dataNote": "We only receive your name, avatar and email. We never post on your behalf.",
+    "agreeTo": "By signing in you agree to the <link>privacy policy</link>.",
+    "profile": "Profile",
+    "errorNotLinked": "This email already signed in another way. Use the same service you used the first time.",
+    "errorAccessDenied": "Sign-in rejected. Your email may not be verified with the provider.",
+    "errorVerification": "The sign-in link expired. Please try again.",
+    "errorGeneric": "Could not sign in. Please try again."
+  },
+  "footer": {
+    "privacy": "Privacy policy",
+    "sources": "Anime data comes from open sources: MyAnimeList, Shikimori, AniList. We do not host or serve any video."
+  },
+  "language": {
+    "label": "Language",
+    "switch": "Change language"
+  }
+}

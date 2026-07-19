@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import type { CardTitle } from "@/lib/queries";
+import { pickTitle } from "@/lib/title-locale";
 
 /** Статус тайтла у текущего пользователя. null — если не в списке или гость. */
 export async function getEntry(titleId: number) {
@@ -81,7 +82,7 @@ export async function setProgress(titleId: number, progress: number) {
  * Ряд «Продолжить просмотр» из макета — то, что пользователь смотрит сейчас,
  * свежее сверху. Для гостей пусто, и ряд просто не рендерится.
  */
-export async function getContinueWatching(limit = 14): Promise<CardTitle[]> {
+export async function getContinueWatching(locale: string, limit = 14): Promise<CardTitle[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
 
@@ -92,11 +93,11 @@ export async function getContinueWatching(limit = 14): Promise<CardTitle[]> {
     select: { title: { select: CARD_FIELDS } },
   });
 
-  return entries.map((e) => toCard(e.title));
+  return entries.map((e) => toCard(e.title, locale));
 }
 
 /** Весь список пользователя, сгруппированный по статусу — для страницы /my. */
-export async function getMyList() {
+export async function getMyList(locale: string) {
   const session = await auth();
   if (!session?.user?.id) return null;
 
@@ -114,7 +115,7 @@ export async function getMyList() {
   };
 
   for (const e of entries) {
-    if (e.status in grouped) grouped[e.status].push(toCard(e.title));
+    if (e.status in grouped) grouped[e.status].push(toCard(e.title, locale));
   }
 
   return grouped;
@@ -125,6 +126,7 @@ const CARD_FIELDS = {
   slug: true,
   title: true,
   titleRu: true,
+  titleJp: true,
   posterUrl: true,
   hue: true,
   score: true,
@@ -136,16 +138,19 @@ function toCard(t: {
   slug: string;
   title: string;
   titleRu: string | null;
+  titleJp: string | null;
   posterUrl: string | null;
   hue: number;
   score: number | null;
   genres: { name: string }[];
-}): CardTitle {
+}, locale: string): CardTitle {
+  const names = pickTitle(t, locale);
+
   return {
     id: t.id,
     slug: t.slug,
-    title: t.titleRu ?? t.title,
-    original: t.titleRu ? t.title : null,
+    title: names.title,
+    original: names.original,
     posterUrl: t.posterUrl,
     hue: t.hue,
     score: t.score,

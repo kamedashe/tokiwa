@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -9,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
  * букву. По Enter уходим сразу, не дожидаясь дебаунса.
  */
 export function SearchField({ initialQuery = "" }: { initialQuery?: string }) {
+  const t = useTranslations("nav");
   const router = useRouter();
   const [value, setValue] = useState(initialQuery);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,8 +69,8 @@ export function SearchField({ initialQuery = "" }: { initialQuery?: string }) {
           setValue(e.target.value);
         }}
         type="search"
-        placeholder="Поиск тайтлов…"
-        aria-label="Поиск тайтлов"
+        placeholder={t("search")}
+        aria-label={t("searchLabel")}
         className="w-full bg-transparent text-[13px] text-foreground placeholder:text-faint focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
       />
     </form>

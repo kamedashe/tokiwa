@@ -1,27 +1,32 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { Logo } from "@/components/logo";
 import { SearchField } from "@/components/search-field";
 import { UserMenu } from "@/components/user-menu";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 const NAV = [
-  { label: "Главная", href: "/" },
-  { label: "Каталог", href: "/catalog" },
-  { label: "Сезоны", href: "/seasons" },
-  { label: "Топ-100", href: "/top" },
-  { label: "Мой список", href: "/my" },
-];
+  { key: "home", href: "/" },
+  { key: "catalog", href: "/catalog" },
+  { key: "seasons", href: "/seasons" },
+  { key: "top", href: "/top" },
+  { key: "myList", href: "/my" },
+] as const;
 
-export function SiteHeader({
+export async function SiteHeader({
   current = "/",
   searchQuery = "",
 }: {
   current?: string;
   searchQuery?: string;
 }) {
+  const t = await getTranslations("nav");
+
   return (
     <header className="relative z-30 flex items-center justify-between gap-3 px-4 py-4 md:px-10 md:py-6">
       <div className="flex min-w-0 items-center gap-6 md:gap-10">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <div className="size-[26px] rounded-lg bg-[linear-gradient(135deg,#ffb020,#ff7a3d)]" />
+          <Logo size={26} id="header" />
           {/* На узких экранах логотип сжимается до значка — место нужно поиску. */}
           <span className="font-display text-[19px] font-bold tracking-[-0.03em] max-[420px]:hidden">
             TokiWa<span className="text-accent">.</span>
@@ -40,7 +45,7 @@ export function SiteHeader({
                 }`}
                 aria-current={active ? "page" : undefined}
               >
-                {item.label}
+                {t(item.key)}
                 {active && (
                   <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-sm bg-accent" />
                 )}
@@ -50,8 +55,9 @@ export function SiteHeader({
         </nav>
       </div>
 
-      <div className="flex min-w-0 flex-1 items-center justify-end gap-3 md:flex-none md:gap-4">
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-2 md:flex-none md:gap-3">
         <SearchField initialQuery={searchQuery} />
+        <LanguageSwitcher />
         <UserMenu />
       </div>
     </header>

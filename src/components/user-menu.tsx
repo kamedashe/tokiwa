@@ -1,9 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { auth, signOut } from "@/auth";
 
 /** Аватар со списком и выходом, либо кнопка входа для гостя. */
 export async function UserMenu() {
+  const t = await getTranslations("nav");
   const session = await auth();
 
   if (!session?.user) {
@@ -12,7 +14,7 @@ export async function UserMenu() {
         href="/login"
         className="rounded-full bg-accent px-5 py-2 text-[13px] font-bold text-ink transition-colors hover:bg-accent-soft"
       >
-        Войти
+        {t("signIn")}
       </Link>
     );
   }
@@ -21,11 +23,11 @@ export async function UserMenu() {
 
   return (
     <div className="group relative">
-      <Link href="/my" className="block" aria-label="Мой список">
+      <Link href="/my" className="block" aria-label={t("myList")}>
         {image ? (
           <Image
             src={image}
-            alt={name ?? "Профиль"}
+            alt={name ?? t("myList")}
             width={36}
             height={36}
             className="size-9 rounded-full border border-white/10 object-cover"
@@ -45,14 +47,14 @@ export async function UserMenu() {
           )}
 
           <Link href="/my" className="block px-4 py-2.5 text-[13px] text-muted hover:text-foreground">
-            Мой список
+            {t("myList")}
           </Link>
 
           <Link
             href="/backlog"
             className="block px-4 py-2.5 text-[13px] text-muted hover:text-foreground"
           >
-            Сколько у меня времени
+            {t("backlog")}
           </Link>
 
           {session.user.role === "admin" && (
@@ -60,7 +62,7 @@ export async function UserMenu() {
               href="/admin"
               className="block px-4 py-2.5 text-[13px] text-accent hover:text-accent-soft"
             >
-              Админка
+              {t("admin")}
             </Link>
           )}
 
@@ -74,7 +76,7 @@ export async function UserMenu() {
               type="submit"
               className="w-full px-4 py-2.5 text-left text-[13px] text-muted hover:text-foreground"
             >
-              Выйти
+              {t("signOut")}
             </button>
           </form>
         </div>

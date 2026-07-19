@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useState, useTransition } from "react";
 import { toggleWatchlist } from "@/lib/watchlist";
 
@@ -17,6 +18,7 @@ export function WatchlistButton({
   initialInList: boolean;
   className?: string;
 }) {
+  const t = useTranslations("home");
   const router = useRouter();
   const [inList, setInList] = useState(initialInList);
   const [pending, startTransition] = useTransition();
@@ -51,7 +53,7 @@ export function WatchlistButton({
           : "border-hairline-strong text-foreground hover:border-white/35"
       } ${className}`}
     >
-      {inList ? "✓ В списке" : "+ В список"}
+      {inList ? t("inList") : t("addToList")}
     </button>
   );
 }

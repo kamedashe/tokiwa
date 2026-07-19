@@ -1,22 +1,35 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { AnimeCard } from "@/components/anime-card";
 import { Reveal } from "@/components/reveal";
-import type { Row } from "@/lib/queries";
+import { seasonLabel, type Row } from "@/lib/queries";
 
 /** Горизонтальный ряд карточек со снап-скроллом — блок «rows» из макета. */
-export function CardRow({ row, index = 0 }: { row: Row; index?: number }) {
+export async function CardRow({ row, index = 0 }: { row: Row; index?: number }) {
+  const t = await getTranslations("home");
+  const seasons = await getTranslations("seasons");
+
+  // Сезонный ряд подписывается датой, остальные — обычным ключом.
+  const heading = row.season
+    ? t("season", { label: seasonLabel(seasons, row.season.key, row.season.year) })
+    : t(row.key);
+
   return (
     <Reveal delayMs={(index % 5) * 55}>
       <section className="px-4 pb-2 pt-8 md:px-10">
         <div className="mb-[18px] flex items-baseline justify-between">
           <div className="flex items-baseline gap-3">
             <h2 className="font-display text-[21px] font-semibold tracking-[-0.02em]">
-              {row.title}
+              {heading}
             </h2>
-            <span className="font-display text-xs tracking-[0.1em] text-dim">{row.count}</span>
+            {row.count !== null && (
+              <span className="font-display text-xs tracking-[0.1em] text-dim">
+                {t("titlesCount", { count: row.count })}
+              </span>
+            )}
           </div>
           <Link href={row.href} className="text-[13px] text-subtle transition-colors hover:text-accent">
-            Все →
+            {t("seeAll")}
           </Link>
         </div>
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Artwork } from "@/components/artwork";
 import type { CardTitle } from "@/lib/queries";
 

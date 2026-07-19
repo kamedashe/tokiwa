@@ -4,16 +4,29 @@ import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { Pagination } from "@/components/pagination";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { isSortKey, listGenres, searchTitles, type SortKey } from "@/lib/queries";
 
-export const metadata = { title: "Каталог" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "catalog" });
+  return { title: t("title") };
+}
 
 export default async function CatalogPage({
   searchParams,
+  params,
 }: {
   searchParams: Promise<{ q?: string; genre?: string; sort?: string; page?: string }>;
+  params: Promise<{ locale: string }>;
 }) {
-  const sp = await searchParams;
+  const [sp, { locale }] = await Promise.all([searchParams, params]);
+  const t = await getTranslations("catalog");
 
   const q = sp.q?.trim() || undefined;
   const genre = sp.genre?.trim() || undefined;
@@ -21,7 +34,7 @@ export default async function CatalogPage({
   const page = Math.max(1, Number(sp.page) || 1);
 
   const [result, genres] = await Promise.all([
-    searchTitles({ q, genre, sort, page }),
+    searchTitles({ locale, q, genre, sort, page }),
     listGenres(),
   ]);
 
@@ -35,7 +48,9 @@ export default async function CatalogPage({
     return qs ? `/catalog?${qs}` : "/catalog";
   };
 
-  const subheading = q ? `по запросу «${q}» — ${result.total}` : `${result.total} тайтлов`;
+  const subheading = q
+    ? t("found", { query: q, count: result.total })
+    : t("titlesCount", { count: result.total });
 
   return (
     <main className="min-h-screen">
@@ -43,14 +58,14 @@ export default async function CatalogPage({
 
       <div className="px-4 pt-8 md:px-10">
         <div className="mb-7 flex items-baseline gap-3">
-          <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">Каталог</h1>
+          <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">{t("title")}</h1>
           <span className="font-display text-xs tracking-[0.1em] text-dim">{subheading}</span>
         </div>
 
         <CatalogFilters genres={genres} q={q} genre={genre} sort={sort} />
       </div>
 
-      <TitleGrid items={result.items} />
+      <TitleGrid items={result.items} emptyText={t("nothingFound")} />
 
       <div className="px-4 pb-16 md:px-10">
         <Pagination page={result.page} pages={result.pages} hrefFor={hrefFor} />

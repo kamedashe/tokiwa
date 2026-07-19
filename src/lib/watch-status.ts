@@ -1,16 +1,11 @@
-/** Подписи статусов. Отдельный файл, потому что из "use server" можно
- *  экспортировать только async-функции. */
-export const WATCH_STATUSES = {
-  watching: "Смотрю",
-  planned: "Запланировано",
-  completed: "Посмотрел",
-  dropped: "Брошено",
-} as const;
+/**
+ * Статусы просмотра. Здесь только ключи — подписи живут в словарях под
+ * `status.*`, потому что их четыре штуки на каждый язык.
+ */
+export const STATUS_ORDER = ["watching", "planned", "completed", "dropped"] as const;
 
-export type WatchStatus = keyof typeof WATCH_STATUSES;
-
-export const STATUS_ORDER = Object.keys(WATCH_STATUSES) as WatchStatus[];
+export type WatchStatus = (typeof STATUS_ORDER)[number];
 
 export function isWatchStatus(value: string): value is WatchStatus {
-  return value in WATCH_STATUSES;
+  return (STATUS_ORDER as readonly string[]).includes(value);
 }

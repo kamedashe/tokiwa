@@ -1,0 +1,23 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Песочные часы: «toki» (時) — время, и вся суть трекера в подсчёте часов.
+    Читается и как отсылка к названию, и как назначение сайта.
+
+    Файл лежит в app/icon.svg — Next.js сам подставит его как favicon.
+  -->
+  <defs>
+    <linearGradient id="tokiwa-mark" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB020" />
+      <stop offset="1" stop-color="#FF7A3D" />
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="16" fill="url(#tokiwa-mark)" />
+
+  <!-- Верхняя и нижняя крышки. -->
+  <rect x="19" y="14" width="26" height="5" rx="2.5" fill="#050506" />
+  <rect x="19" y="45" width="26" height="5" rx="2.5" fill="#050506" />
+
+  <!-- Колбы, сходящиеся в перешейке по центру. -->
+  <path d="M23 19h18l-8 12 8 13H23l8-13-8-12Z" fill="#050506" />
+</svg>

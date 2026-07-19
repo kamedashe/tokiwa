@@ -2,12 +2,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { remainingMinutes, totalMinutes } from "@/lib/backlog";
 import type { CardTitle } from "@/lib/queries";
+import { pickTitle } from "@/lib/title-locale";
 
 const TITLE_FIELDS = {
   id: true,
   slug: true,
   title: true,
   titleRu: true,
+  titleJp: true,
   posterUrl: true,
   hue: true,
   score: true,
@@ -22,6 +24,7 @@ type TitleRecord = {
   slug: string;
   title: string;
   titleRu: string | null;
+  titleJp: string | null;
   posterUrl: string | null;
   hue: number;
   score: number | null;
@@ -39,12 +42,14 @@ export interface BacklogItem extends CardTitle {
   estimated: boolean;
 }
 
-function toItem(t: TitleRecord, minutes: number): BacklogItem {
+function toItem(t: TitleRecord, minutes: number, locale: string): BacklogItem {
+  const names = pickTitle(t, locale);
+
   return {
     id: t.id,
     slug: t.slug,
-    title: t.titleRu ?? t.title,
-    original: t.titleRu ? t.title : null,
+    title: names.title,
+    original: names.original,
     posterUrl: t.posterUrl,
     hue: t.hue,
     score: t.score,
@@ -106,7 +111,7 @@ export async function getBacklogStats(): Promise<BacklogStats | null> {
  * «Смотрю» идёт вперёд «запланировано»: логичнее сначала предложить закрыть
  * начатое. Внутри группы — по оценке.
  */
-export async function getFitting(budget: number): Promise<{
+export async function getFitting(locale: string, budget: number): Promise<{
   fits: BacklogItem[];
   tooLong: BacklogItem[];
 }> {
@@ -125,6 +130,7 @@ export async function getFitting(budget: number): Promise<{
         e.status === "watching"
           ? remainingMinutes(e.title, e.progress)
           : totalMinutes(e.title),
+        locale,
       ),
       watching: e.status === "watching",
     }))

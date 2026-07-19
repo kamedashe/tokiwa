@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Logo } from "@/components/logo";
 import { isAdmin } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="flex items-center justify-between border-b border-hairline px-6 py-5 md:px-10">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="size-[22px] rounded-md bg-[linear-gradient(135deg,#ffb020,#ff7a3d)]" />
+            <Logo size={22} id="admin" />
             <span className="font-display text-[17px] font-bold tracking-[-0.03em]">TokiWa</span>
           </Link>
           <span className="rounded-md border border-accent/30 px-2 py-0.5 font-display text-[10px] tracking-[0.16em] text-accent">

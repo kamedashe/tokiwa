@@ -25,6 +25,13 @@
   --font-sans: var(--font-manrope), system-ui, sans-serif;
 }
 
+/* Ни Manrope, ни Space Grotesk не содержат японских глифов — на японской
+   версии подставляем Noto Sans JP, иначе текст рассыпется на системный шрифт. */
+html[lang="ja"] {
+  --font-display: var(--font-noto-jp), sans-serif;
+  --font-sans: var(--font-noto-jp), system-ui, sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
 }

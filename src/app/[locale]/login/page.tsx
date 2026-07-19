@@ -1,17 +1,17 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
+import { Logo } from "@/components/logo";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 
-export const metadata = { title: "Вход" };
 
-/** Сообщения об ошибках Auth.js — человеческим языком. */
+/** Коды ошибок Auth.js — на понятные ключи словаря. */
 const ERRORS: Record<string, string> = {
-  OAuthAccountNotLinked:
-    "С этим адресом уже входили другим способом. Войдите тем же сервисом, что и в первый раз.",
-  AccessDenied: "Вход отклонён. Возможно, адрес почты не подтверждён у провайдера.",
-  Verification: "Ссылка для входа устарела. Попробуйте ещё раз.",
+  OAuthAccountNotLinked: "errorNotLinked",
+  AccessDenied: "errorAccessDenied",
+  Verification: "errorVerification",
 };
 
 export default async function LoginPage({
@@ -20,6 +20,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const { next, error } = await searchParams;
+  const t = await getTranslations("auth");
   const session = await auth();
 
   // Уже вошли — незачем показывать форму.
@@ -30,17 +31,16 @@ export default async function LoginPage({
       <SiteHeader />
 
       <div className="mx-auto flex max-w-[420px] flex-col items-center px-4 py-24 text-center">
-        <div className="mb-6 size-12 rounded-2xl bg-[linear-gradient(135deg,#ffb020,#ff7a3d)]" />
+        <div className="mb-6"><Logo size={48} id="login" /></div>
 
-        <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">Вход в TokiWa</h1>
+        <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">{t("signInTitle")}</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-muted">
-          Нужен, чтобы вести списки «смотрю» и «посмотрел» и продолжать с той серии, на которой
-          остановились.
+          {t("signInIntro")}
         </p>
 
         {error && (
           <div className="mt-6 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[13px] leading-relaxed text-red-400">
-            {ERRORS[error] ?? "Не удалось войти. Попробуйте ещё раз."}
+            {t(ERRORS[error] ?? "errorGeneric")}
           </div>
         )}
 
@@ -73,7 +73,7 @@ export default async function LoginPage({
                   d="M12 4.98c1.69 0 3.2.58 4.4 1.72l3.3-3.3C17.7 1.53 15.1.5 12 .5 7.52.5 3.65 3.07 1.7 6.85l3.85 2.98C6.46 7.1 9 4.98 12 4.98Z"
                 />
               </svg>
-              Войти через Google
+              {t("withGoogle")}
             </button>
           </form>
 
@@ -90,19 +90,21 @@ export default async function LoginPage({
               <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden>
                 <path d="M20.317 4.369A19.79 19.79 0 0 0 15.885 3c-.21.375-.45.88-.617 1.283a18.4 18.4 0 0 0-5.535 0A12.6 12.6 0 0 0 9.107 3a19.7 19.7 0 0 0-4.435 1.372C1.86 8.575 1.1 12.67 1.48 16.708a19.9 19.9 0 0 0 6.06 3.066c.49-.664.926-1.37 1.301-2.113a12.9 12.9 0 0 1-2.05-.985c.172-.126.34-.258.502-.394a14.2 14.2 0 0 0 12.146 0c.164.14.332.272.502.394-.654.386-1.34.716-2.053.986a15.8 15.8 0 0 0 1.3 2.112 19.8 19.8 0 0 0 6.064-3.067c.445-4.68-.762-8.738-3.195-12.34ZM8.68 14.246c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.42 2.157-2.42 1.21 0 2.176 1.096 2.156 2.42 0 1.334-.955 2.42-2.156 2.42Zm6.64 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.42 2.157-2.42 1.21 0 2.176 1.096 2.156 2.42 0 1.334-.946 2.42-2.156 2.42Z" />
               </svg>
-              Войти через Discord
+              {t("withDiscord")}
             </button>
           </form>
         </div>
 
         <p className="mt-6 text-[12px] leading-relaxed text-dim">
-          Мы получаем только имя, аватар и email. Ничего не публикуем от вашего имени.
+          {t("dataNote")}
           <br />
-          Входя, вы соглашаетесь с{" "}
-          <Link href="/privacy" className="text-subtle underline hover:text-foreground">
-            политикой конфиденциальности
-          </Link>
-          .
+          {t.rich("agreeTo", {
+            link: (chunks) => (
+              <Link href="/privacy" className="text-subtle underline hover:text-foreground">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </div>
 

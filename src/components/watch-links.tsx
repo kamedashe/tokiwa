@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { SERVICES, isAvailableIn } from "@/lib/services";
 import { affiliateUrl } from "@/lib/affiliate";
 
@@ -15,7 +16,7 @@ export interface WatchLinkRow {
  * Сервисы, недоступные в стране посетителя, не прячем совсем, а опускаем вниз
  * под отдельный заголовок: у людей бывают VPN и подписки других регионов.
  */
-export function WatchLinks({
+export async function WatchLinks({
   links,
   country,
 }: {
@@ -23,6 +24,8 @@ export function WatchLinks({
   /** Код страны из geo-заголовка. null — не определили. */
   country?: string | null;
 }) {
+  const t = await getTranslations("title");
+
   if (links.length === 0) return null;
 
   const local = links.filter((l) => isAvailableIn(l.service, country ?? null));
@@ -30,21 +33,29 @@ export function WatchLinks({
 
   return (
     <div className="flex flex-col gap-5">
-      <LinkGroup links={local} />
+      <LinkGroup links={local} adLabel={t("ad")} />
 
       {foreign.length > 0 && (
         <div className="flex flex-col gap-2">
           <span className="font-display text-[11px] tracking-[0.16em] text-dim">
-            МОЖЕТ НЕ РАБОТАТЬ В ВАШЕЙ СТРАНЕ
+            {t("mayNotWork")}
           </span>
-          <LinkGroup links={foreign} muted />
+          <LinkGroup links={foreign} adLabel={t("ad")} muted />
         </div>
       )}
     </div>
   );
 }
 
-function LinkGroup({ links, muted = false }: { links: WatchLinkRow[]; muted?: boolean }) {
+function LinkGroup({
+  links,
+  adLabel,
+  muted = false,
+}: {
+  links: WatchLinkRow[];
+  adLabel: string;
+  muted?: boolean;
+}) {
   if (links.length === 0) return null;
 
   return (
@@ -79,7 +90,7 @@ function LinkGroup({ links, muted = false }: { links: WatchLinkRow[]; muted?: bo
                 {sponsored && (
                   // Партнёрские ссылки положено помечать явно.
                   <span className="text-[10px] uppercase tracking-[0.1em] text-faint">
-                    реклама
+                    {adLabel}
                   </span>
                 )}
               </span>

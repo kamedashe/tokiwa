@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Нижняя панель вместо гамбургера: трекером пользуются одной рукой, и до
@@ -6,19 +7,21 @@ import Link from "next/link";
  * На десктопе не показывается, там обычное меню в шапке.
  */
 const ITEMS = [
-  { href: "/", label: "Главная", icon: HomeIcon },
-  { href: "/catalog", label: "Каталог", icon: SearchIcon },
-  { href: "/my", label: "Мой список", icon: ListIcon },
-  { href: "/backlog", label: "Время", icon: ClockIcon },
-];
+  { href: "/", key: "home", icon: HomeIcon },
+  { href: "/catalog", key: "catalog", icon: SearchIcon },
+  { href: "/my", key: "myList", icon: ListIcon },
+  { href: "/backlog", key: "time", icon: ClockIcon },
+] as const;
 
-export function MobileNav({ current = "/" }: { current?: string }) {
+export async function MobileNav({ current = "/" }: { current?: string }) {
+  const t = await getTranslations("nav");
+
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-ink/95 backdrop-blur-lg md:hidden"
       // Учитываем «шторку» айфонов, иначе панель налезает на системную полоску.
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      aria-label="Основная навигация"
+      aria-label={t("mainNav")}
     >
       <div className="flex">
         {ITEMS.map((item) => {
@@ -35,7 +38,7 @@ export function MobileNav({ current = "/" }: { current?: string }) {
               }`}
             >
               <Icon />
-              <span className="text-[10px] leading-none">{item.label}</span>
+              <span className="text-[10px] leading-none">{t(item.key)}</span>
             </Link>
           );
         })}
