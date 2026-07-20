@@ -115,6 +115,13 @@ export function currentSeason(now = new Date()) {
   return { key, year: now.getFullYear() };
 }
 
+/**
+ * Postgres по умолчанию считает NULL самым большим значением и при сортировке
+ * по убыванию ставит его первым — без `nulls: "last"` каталог начинался с
+ * неоценённых анонсов вместо лучшего, что у нас есть.
+ */
+const BY_SCORE = { score: { sort: "desc", nulls: "last" } } as const;
+
 /** Плоский список карточек для страниц-сеток (каталог, топ, сезоны). */
 export async function listTitles(
   locale: string,
@@ -123,7 +130,7 @@ export async function listTitles(
 ): Promise<CardTitle[]> {
   const rows = await prisma.title.findMany({
     where,
-    orderBy: [{ score: "desc" }, { id: "asc" }],
+    orderBy: [BY_SCORE, { id: "asc" }],
     take,
     select: CARD_SELECT,
   });
@@ -132,8 +139,8 @@ export async function listTitles(
 
 /** Подписи лежат в словаре под `catalog.byScore` и так далее. */
 export const SORTS = {
-  score: { orderBy: [{ score: "desc" }, { id: "asc" }] },
-  year: { orderBy: [{ year: "desc" }, { score: "desc" }] },
+  score: { orderBy: [BY_SCORE, { id: "asc" }] },
+  year: { orderBy: [{ year: "desc" }, BY_SCORE] },
   title: { orderBy: [{ title: "asc" }] },
 } as const;
 
@@ -215,7 +222,7 @@ export async function getHero(locale: string): Promise<HeroTitle | null> {
       include: { genres: { select: { name: true }, take: 2 } },
     })) ??
     (await prisma.title.findFirst({
-      orderBy: { score: "desc" },
+      orderBy: BY_SCORE,
       include: { genres: { select: { name: true }, take: 2 } },
     }));
 
@@ -238,13 +245,13 @@ export async function getHomeRows(locale: string, excludeId?: number): Promise<R
   const [trending, seasonal, seasonTotal, topRated] = await Promise.all([
     prisma.title.findMany({
       where: { isTrending: true, ...notHero },
-      orderBy: { score: "desc" },
+      orderBy: BY_SCORE,
       take: 14,
       select: CARD_SELECT,
     }),
     prisma.title.findMany({
       where: { season: season.key, year: season.year, ...notHero },
-      orderBy: { score: "desc" },
+      orderBy: BY_SCORE,
       take: 14,
       select: CARD_SELECT,
     }),

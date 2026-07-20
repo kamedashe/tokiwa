@@ -351,7 +351,7 @@ export async function syncRelated({
       })
     : await prisma.title.findMany({
         where: { relatedSyncedAt: null, malId: { not: null } },
-        orderBy: { score: "desc" },
+        orderBy: { score: { sort: "desc", nulls: "last" } },
         take: seeds,
         select: { id: true, malId: true, title: true },
       });
@@ -408,7 +408,7 @@ export async function markHomepagePicks() {
   if (hasFeatured === 0) {
     const best = await prisma.title.findFirst({
       where: { posterUrl: { not: null } },
-      orderBy: { score: "desc" },
+      orderBy: { score: { sort: "desc", nulls: "last" } },
     });
     if (best) await prisma.title.update({ where: { id: best.id }, data: { isFeatured: true } });
   }
@@ -416,7 +416,7 @@ export async function markHomepagePicks() {
   const hasTrending = await prisma.title.count({ where: { isTrending: true } });
   if (hasTrending === 0) {
     const top = await prisma.title.findMany({
-      orderBy: { score: "desc" },
+      orderBy: { score: { sort: "desc", nulls: "last" } },
       take: 12,
       select: { id: true },
     });

@@ -152,7 +152,12 @@ export async function fetchAnimeDetails(malId: number) {
   if (!a?.name) return null;
 
   const aired = a.aired_on ? new Date(a.aired_on) : null;
-  const poster = a.image?.original;
+
+  // Когда постера нет, Shikimori отдаёт не null, а ссылку на свою картинку
+  // «404 not found». Сохранять её нельзя: наш собственный градиент по hue
+  // выглядит куда лучше чужой заглушки.
+  const raw = a.image?.original;
+  const poster = raw && !raw.includes("missing_original") ? raw : null;
 
   return {
     malId: a.myanimelist_id ?? a.id,
