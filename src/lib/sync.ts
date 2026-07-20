@@ -172,6 +172,42 @@ export async function syncCatalog({
 }
 
 /**
+ * Какие id со страницы у нас ещё не сохранены. Одним запросом на страницу,
+ * а не по одному на тайтл: на длинных прогонах полсотни отдельных запросов
+ * выедали пул соединений и роняли всё с P2024.
+ */
+async function unknownIds(ids: number[]): Promise<number[]> {
+  if (ids.length === 0) return [];
+
+  const rows = await prisma.title.findMany({
+    where: { malId: { in: ids } },
+    select: { malId: true },
+  });
+
+  const known = new Set(rows.map((r) => r.malId));
+  return ids.filter((id) => !known.has(id));
+}
+
+/**
+ * Neon рвёт долгие соединения, а пул Prisma не всегда переживает это молча.
+ * Ошибка на одной странице не повод терять часы прогона — ждём и пробуем ещё.
+ */
+async function withRetry<T>(action: () => Promise<T>, attempts = 4): Promise<T | null> {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await action();
+    } catch (error) {
+      if (attempt === attempts) {
+        console.warn("  ! страница пропущена:", (error as Error).message.split("\n")[0]);
+        return null;
+      }
+      await new Promise((r) => setTimeout(r, attempt * 3000));
+    }
+  }
+  return null;
+}
+
+/**
  * Наполняет каталог напрямую из Shikimori, по популярности.
  *
  * Основной сид (`syncCatalog`) берёт только топ и текущий сезон из Jikan —
@@ -196,22 +232,20 @@ export async function syncCatalogFromShikimori({
   let checked = 0;
 
   for (let page = startPage; page < startPage + pages; page++) {
-    const ids = await fetchPopularAnimeIds(page);
+    const ids = await withRetry(() => fetchPopularAnimeIds(page));
+    if (ids === null) continue; // страницу не отдали — не конец каталога
     if (ids.length === 0) break; // страницы кончились
 
-    for (const malId of ids) {
-      checked++;
-      const existing = await prisma.title.findUnique({ where: { malId }, select: { id: true } });
-      if (existing) continue;
+    checked += ids.length;
 
-      try {
-        const saved = await upsertFromShikimori(malId);
-        if (saved) {
-          added++;
-          onProgress?.(`  + ${saved.titleRu ?? saved.title}`);
-        }
-      } catch {
-        // Точечный сбой на одном тайтле не должен рушить весь прогон.
+    const fresh = await withRetry(() => unknownIds(ids));
+    if (fresh === null) continue;
+
+    for (const malId of fresh) {
+      const saved = await withRetry(() => upsertFromShikimori(malId), 2);
+      if (saved) {
+        added++;
+        onProgress?.(`  + ${saved.titleRu ?? saved.title}`);
       }
     }
   }
@@ -252,11 +286,9 @@ export async function syncCatalogFromShikimoriCron({
       break;
     }
 
-    for (const malId of ids) {
-      checked++;
-      const existing = await prisma.title.findUnique({ where: { malId }, select: { id: true } });
-      if (existing) continue;
+    checked += ids.length;
 
+    for (const malId of await unknownIds(ids)) {
       try {
         const saved = await upsertFromShikimori(malId);
         if (saved) {
