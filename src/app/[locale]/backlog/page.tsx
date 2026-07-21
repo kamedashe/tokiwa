@@ -8,6 +8,8 @@ import { AnimeCard } from "@/components/anime-card";
 import { auth } from "@/auth";
 import { getBacklogStats, getFitting, type BacklogItem } from "@/lib/backlog-queries";
 import { TIME_BUDGETS, budgetMinutes, formatDuration, paceEstimate } from "@/lib/backlog";
+import { pickDonateLink } from "@/lib/donate";
+import { visitorCountry } from "@/lib/geo";
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +31,11 @@ export default async function BacklogPage({
 
   const budget = budgetMinutes(budgetKey ?? "") ?? null;
 
-  const [stats, fitting] = await Promise.all([
+  const [stats, fitting, donate, footer] = await Promise.all([
     getBacklogStats(),
     budget ? getFitting(locale, budget) : Promise.resolve(null),
+    visitorCountry().then(pickDonateLink),
+    getTranslations("footer"),
   ]);
 
   if (!stats) redirect("/login?next=/backlog");
@@ -82,6 +86,23 @@ export default async function BacklogPage({
                     value={paceEstimate(time, totalAhead, (6 * 60) / 7)}
                   />
                 </div>
+
+                {/* Человек только что увидел свои часы — лучший момент,
+                    чтобы тихо напомнить про поддержку. Без ссылки в окружении
+                    строчка не появляется вовсе. */}
+                {donate && (
+                  <p className="mt-4 border-t border-hairline pt-3 text-[12px] text-dim">
+                    {t("supportHint")}{" "}
+                    <a
+                      href={donate.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent transition-colors hover:text-accent-soft"
+                    >
+                      ♥ {footer("support")}
+                    </a>
+                  </p>
+                )}
               </section>
             )}
 

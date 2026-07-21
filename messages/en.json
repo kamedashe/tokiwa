@@ -111,7 +111,8 @@
     "closest": "Closest is “{title}” — it needs {time}.",
     "emptyText": "Your list is empty, nothing to count.",
     "getTitles": "Find some titles",
-    "estimatedHint": "Duration unknown, using a typical value"
+    "estimatedHint": "Duration unknown, using a typical value",
+    "supportHint": "Did the math save you an evening?"
   },
   "time": {
     "minutes": "{count} min",

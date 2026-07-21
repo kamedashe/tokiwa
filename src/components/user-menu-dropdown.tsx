@@ -14,14 +14,17 @@ import { Link } from "@/i18n/navigation";
 export function UserMenuDropdown({
   name,
   image,
+  donateUrl,
   labels,
   signOutAction,
 }: {
   name: string | null | undefined;
   image: string | null | undefined;
+  donateUrl: string | null;
   labels: {
     myList: string;
     backlog: string;
+    support: string;
     signOut: string;
   };
   signOutAction: () => Promise<void>;
@@ -89,6 +92,18 @@ export function UserMenuDropdown({
           >
             {labels.backlog}
           </Link>
+
+          {donateUrl && (
+            <a
+              href={donateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2.5 text-[13px] text-accent hover:text-accent-soft"
+            >
+              ♥ {labels.support}
+            </a>
+          )}
 
           <form action={signOutAction}>
             <button

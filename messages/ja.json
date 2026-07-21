@@ -111,7 +111,8 @@
     "closest": "一番近いのは「{title}」で、{time}必要です。",
     "emptyText": "リストが空なので計算できません。",
     "getTitles": "作品を探す",
-    "estimatedHint": "話数の長さが不明なため、標準的な値を使用しています"
+    "estimatedHint": "話数の長さが不明なため、標準的な値を使用しています",
+    "supportHint": "この計算が役に立ちましたか？"
   },
   "time": {
     "minutes": "{count}分",
