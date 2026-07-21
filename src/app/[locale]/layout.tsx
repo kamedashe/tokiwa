@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Manrope, Noto_Sans_JP, Space_Grotesk } from "next/font/google";
-import { CloudflareAnalytics } from "@/components/cloudflare-analytics";
+import { Analytics } from "@vercel/analytics/next";
 import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
@@ -89,7 +89,7 @@ export default async function RootLayout({
     >
       <body>
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
-        <CloudflareAnalytics />
+        <Analytics />
       </body>
     </html>
   );
