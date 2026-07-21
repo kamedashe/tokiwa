@@ -26,6 +26,9 @@ export async function SiteFooter() {
           <Link href="/catalog" className="transition-colors hover:text-foreground">
             {nav("catalog")}
           </Link>
+          <Link href="/friends" className="transition-colors hover:text-foreground">
+            {t("friends")}
+          </Link>
           {donate && (
             <a
               href={donate.url}

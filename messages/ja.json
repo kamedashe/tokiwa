@@ -139,7 +139,8 @@
   "footer": {
     "privacy": "プライバシーポリシー",
     "support": "プロジェクトを支援",
-    "sources": "アニメの情報は MyAnimeList、Shikimori、AniList から取得しています。動画の配信・保存は行っていません。"
+    "sources": "アニメの情報は MyAnimeList、Shikimori、AniList から取得しています。動画の配信・保存は行っていません。",
+    "friends": "仲間"
   },
   "language": {
     "label": "言語",
@@ -164,5 +165,11 @@
       "empty": "インポートできる項目がありません。"
     },
     "repeatHint": "カタログに無い作品は自動で取り込まれます。一度で全ては終わらないことがあるので、その場合はもう一度実行してください。"
+  },
+  "friends": {
+    "title": "プロジェクトの仲間",
+    "note": "TokiWaを紹介してくれたチャンネルです。ありがとうございます！",
+    "edits": "アニメエディット",
+    "arts": "アニメアート"
   }
 }

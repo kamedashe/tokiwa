@@ -52,6 +52,7 @@ async function staticShard(): Promise<MetadataRoute.Sitemap> {
     ...entriesFor("/catalog", { changeFrequency: "daily", priority: 0.8 }),
     ...entriesFor("/top", { changeFrequency: "weekly", priority: 0.7 }),
     ...entriesFor("/seasons", { changeFrequency: "weekly", priority: 0.7 }),
+    ...entriesFor("/friends", { changeFrequency: "monthly", priority: 0.3 }),
     // /privacy не переведена на самом деле — все языковые версии показывают
     // один и тот же русский текст, поэтому hreflang для неё был бы обманом
     // поисковика. Одна каноническая запись, без alternates.

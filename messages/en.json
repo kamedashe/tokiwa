@@ -139,7 +139,8 @@
   "footer": {
     "privacy": "Privacy policy",
     "support": "Support the project",
-    "sources": "Anime data comes from open sources: MyAnimeList, Shikimori, AniList. We do not host or serve any video."
+    "sources": "Anime data comes from open sources: MyAnimeList, Shikimori, AniList. We do not host or serve any video.",
+    "friends": "Friends"
   },
   "language": {
     "label": "Language",
@@ -164,5 +165,11 @@
       "empty": "Nothing to import."
     },
     "repeatHint": "Titles missing from our catalog are pulled in automatically. One run does not always cover everything — just run the import again."
+  },
+  "friends": {
+    "title": "Friends of the project",
+    "note": "Channels that helped spread the word about TokiWa. Thank you!",
+    "edits": "anime edits",
+    "arts": "anime art"
   }
 }
