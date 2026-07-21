@@ -55,34 +55,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     session({ session, user }) {
-      // Прокидываем id и роль в сессию — по ним ищем списки и пускаем в админку.
+      // Прокидываем id в сессию — по нему ищем списки пользователя.
       if (session.user) {
         session.user.id = user.id;
-        session.user.role = (user as { role?: string }).role ?? "user";
       }
       return session;
-    },
-  },
-
-  events: {
-    /**
-     * Бутстрап админа: емейлы из ADMIN_EMAILS получают роль при первом входе.
-     * Иначе первого админа назначить неоткуда — в свежей БД пользователей нет.
-     */
-    async signIn({ user }) {
-      if (!user.email || !user.id) return;
-
-      const admins = (process.env.ADMIN_EMAILS ?? "")
-        .split(",")
-        .map((e) => e.trim().toLowerCase())
-        .filter(Boolean);
-
-      if (!admins.includes(user.email.toLowerCase())) return;
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { role: "admin" },
-      });
     },
   },
 });

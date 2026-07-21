@@ -20,17 +20,15 @@ export async function UserMenu() {
     );
   }
 
-  const { name, image, role } = session.user;
+  const { name, image } = session.user;
 
   return (
     <UserMenuDropdown
       name={name}
       image={image}
-      isAdmin={role === "admin"}
       labels={{
         myList: t("myList"),
         backlog: t("backlog"),
-        admin: t("admin"),
         signOut: t("signOut"),
       }}
       signOutAction={signOutAction}

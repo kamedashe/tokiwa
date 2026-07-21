@@ -53,9 +53,8 @@ model Title {
   /// Длительность одной серии в минутах — основа расчёта времени на тайтл.
   durationMin Int?
 
-  genres     Genre[]
-  watchLinks WatchLink[]
-  watchlist  WatchlistEntry[]
+  genres    Genre[]
+  watchlist WatchlistEntry[]
 
   /// Когда последний раз тянули метаданные из Jikan — чтобы не дёргать API зря.
   syncedAt DateTime?
@@ -84,26 +83,6 @@ model Genre {
   titles Title[]
 }
 
-/// Ссылка «смотреть на легальном сервисе». Нужна там, где встроить нельзя:
-/// Кинопоиск, Okko и прочие держат контент под DRM и эмбедов не дают.
-model WatchLink {
-  id      Int   @id @default(autoincrement())
-  titleId Int
-  title   Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
-
-  /// Ключ из SERVICES в src/lib/services.ts.
-  service String
-  url     String
-
-  /// «Дубляж», «Субтитры» — что именно там есть.
-  note String?
-
-  createdAt DateTime @default(now())
-
-  /// Один сервис — одна ссылка на тайтл.
-  @@unique([titleId, service])
-}
-
 // --- Аккаунты. Структура моделей задана Auth.js, менять поля нельзя. ---
 
 model User {
@@ -112,9 +91,6 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-
-  /// "user" | "admin". Админ ведёт ссылки на сервисы.
-  role String @default("user")
 
   accounts  Account[]
   sessions  Session[]

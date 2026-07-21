@@ -15,10 +15,8 @@
     "searchLabel": "作品を検索",
     "signIn": "ログイン",
     "signOut": "ログアウト",
-    "admin": "管理",
     "backlog": "残り時間",
-    "mainNav": "メインナビゲーション",
-    "toSite": "サイトへ →"
+    "mainNav": "メインナビゲーション"
   },
   "home": {
     "spotlight": "注目作品",
@@ -70,10 +68,6 @@
     "addEpisode": "話数を増やす",
     "removeEpisode": "話数を減らす",
     "timeLeft": "残り：",
-    "whereToWatch": "配信サイト",
-    "whereToWatchNote": "公式の配信サービスです。埋め込みには対応していないため、外部リンクになります。",
-    "mayNotWork": "お住まいの国では利用できない場合があります",
-    "ad": "広告",
     "notFound": "作品が見つかりません",
     "episodes": "全{count}話",
     "statusReleasing": "放送中",

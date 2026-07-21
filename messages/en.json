@@ -15,10 +15,8 @@
     "searchLabel": "Search titles",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "admin": "Admin",
     "backlog": "How much time I have",
-    "mainNav": "Main navigation",
-    "toSite": "To site →"
+    "mainNav": "Main navigation"
   },
   "home": {
     "spotlight": "SPOTLIGHT",
@@ -70,10 +68,6 @@
     "addEpisode": "Add episode",
     "removeEpisode": "Remove episode",
     "timeLeft": "Left to watch:",
-    "whereToWatch": "Where to watch",
-    "whereToWatchNote": "Licensed services — dubs and quality live there, but they cannot be embedded here.",
-    "mayNotWork": "MAY NOT WORK IN YOUR COUNTRY",
-    "ad": "ad",
     "notFound": "Title not found",
     "episodes": "{count} ep.",
     "statusReleasing": "Airing",

@@ -9,10 +9,8 @@ import { Artwork } from "@/components/artwork";
 import { ProgressStepper } from "@/components/progress-stepper";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { StatusPicker } from "@/components/status-picker";
-import { WatchLinks } from "@/components/watch-links";
 import { prisma } from "@/lib/prisma";
 import { getEntry } from "@/lib/watchlist";
-import { visitorCountry } from "@/lib/geo";
 import { formatDuration, remainingMinutes } from "@/lib/backlog";
 import { pickTitle } from "@/lib/title-locale";
 import { localeAlternates } from "@/lib/seo";
@@ -32,7 +30,6 @@ async function getTitle(slug: string) {
     where: { slug },
     include: {
       genres: { select: { name: true, slug: true } },
-      watchLinks: { orderBy: { service: "asc" } },
     },
   });
 }
@@ -72,7 +69,7 @@ export default async function TitlePage({
 
   const names = pickTitle(title, locale);
 
-  const [entry, country] = await Promise.all([getEntry(title.id), visitorCountry()]);
+  const entry = await getEntry(title.id);
   const time = await getTranslations("time");
   const timeLeft = remainingMinutes(title, entry?.progress ?? 0);
 
@@ -171,18 +168,6 @@ export default async function TitlePage({
               </p>
             )}
           </section>
-
-          {title.watchLinks.length > 0 && (
-            <section className="mt-10">
-              <h2 className="mb-1 font-display text-[21px] font-semibold tracking-[-0.02em]">
-                {t("whereToWatch")}
-              </h2>
-              <p className="mb-4 text-[13px] text-dim">
-                {t("whereToWatchNote")}
-              </p>
-              <WatchLinks links={title.watchLinks} country={country} />
-            </section>
-          )}
 
         </div>
       </div>

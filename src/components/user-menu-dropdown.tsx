@@ -14,17 +14,14 @@ import { Link } from "@/i18n/navigation";
 export function UserMenuDropdown({
   name,
   image,
-  isAdmin,
   labels,
   signOutAction,
 }: {
   name: string | null | undefined;
   image: string | null | undefined;
-  isAdmin: boolean;
   labels: {
     myList: string;
     backlog: string;
-    admin: string;
     signOut: string;
   };
   signOutAction: () => Promise<void>;
@@ -92,16 +89,6 @@ export function UserMenuDropdown({
           >
             {labels.backlog}
           </Link>
-
-          {isAdmin && (
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2.5 text-[13px] text-accent hover:text-accent-soft"
-            >
-              {labels.admin}
-            </Link>
-          )}
 
           <form action={signOutAction}>
             <button
