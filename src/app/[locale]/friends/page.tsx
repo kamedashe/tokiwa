@@ -13,10 +13,15 @@ export const dynamic = "force-dynamic";
  * упоминаем их здесь. Список ведётся руками — новые записи добавляются в
  * обмен на пост, а не по просьбе.
  */
-const CHANNELS: { name: string; url: string; tagKey: "edits" | "arts" | "club" }[] = [
+const CHANNELS: {
+  name: string;
+  url: string;
+  tagKey: "edits" | "arts" | "club" | "manga";
+}[] = [
   { name: "AnimEdits", url: "https://t.me/EditsAnimeStyle", tagKey: "edits" },
   { name: "anime_pics", url: "https://t.me/ani_pics", tagKey: "arts" },
   { name: "Аниме клуб MUZA", url: "https://t.me/MUZA_animeclub", tagKey: "club" },
+  { name: "Человек Бензопила", url: "https://t.me/chainsaw_man_fan", tagKey: "manga" },
 ];
 
 export async function generateMetadata({
