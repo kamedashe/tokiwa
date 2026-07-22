@@ -188,6 +188,10 @@
       "empty": "Can't send an empty message.",
       "tooLong": "Too long — keep it under 2000 characters.",
       "tooMany": "That's enough for today — up to 5 per day."
-    }
+    },
+    "nudgeTitle": "Got a minute?",
+    "nudgeText": "What works, what annoys you, what's missing — a couple of sentences help a lot.",
+    "nudgeCta": "Leave feedback",
+    "nudgeClose": "Dismiss"
   }
 }

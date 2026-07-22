@@ -6,6 +6,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
+import { FeedbackNudge } from "@/components/feedback-nudge";
 import { getMyList } from "@/lib/watchlist";
 import { importFromShikimori, importFromMalFile } from "@/lib/import-actions";
 import { STATUS_ORDER } from "@/lib/watch-status";
@@ -17,8 +18,16 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
   const t = await getTranslations("myList");
   const s = await getTranslations("status");
   const c = await getTranslations("catalog");
+  const f = await getTranslations("feedback");
   const grouped = await getMyList(locale);
   if (!grouped) redirect("/login?next=/my");
+
+  const nudgeLabels = {
+    title: f("nudgeTitle"),
+    text: f("nudgeText"),
+    cta: f("nudgeCta"),
+    close: f("nudgeClose"),
+  };
 
   const total = STATUS_ORDER.reduce((sum, key) => sum + grouped[key].length, 0);
 
@@ -73,6 +82,11 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
           emptyText={c("nothingFound")}
         />
       ))}
+
+      {/* Просьба о фидбеке — только у тех, кто реально ведёт список. */}
+      <div className="mx-auto max-w-[720px] px-4 pt-10 md:px-10">
+        <FeedbackNudge labels={nudgeLabels} />
+      </div>
 
       <div className="h-12" />
       <ImportList importShikimori={importFromShikimori} importMal={importFromMalFile} />
