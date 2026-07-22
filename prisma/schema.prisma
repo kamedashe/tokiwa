@@ -83,6 +83,20 @@ model Genre {
   titles Title[]
 }
 
+/// Отзывы пользователей — сырьё для решений, что внедрять, а что убирать.
+/// Пишут только залогиненные: это отсекает ботов и даёт возможность ответить.
+model Feedback {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  message String
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 // --- Аккаунты. Структура моделей задана Auth.js, менять поля нельзя. ---
 
 model User {
@@ -95,6 +109,7 @@ model User {
   accounts  Account[]
   sessions  Session[]
   watchlist WatchlistEntry[]
+  feedback  Feedback[]
 
   createdAt DateTime @default(now())
 }

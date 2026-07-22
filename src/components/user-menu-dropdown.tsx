@@ -24,6 +24,7 @@ export function UserMenuDropdown({
   labels: {
     myList: string;
     backlog: string;
+    feedback: string;
     support: string;
     signOut: string;
   };
@@ -91,6 +92,14 @@ export function UserMenuDropdown({
             className="block px-4 py-2.5 text-[13px] text-muted hover:text-foreground"
           >
             {labels.backlog}
+          </Link>
+
+          <Link
+            href="/feedback"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2.5 text-[13px] text-muted hover:text-foreground"
+          >
+            {labels.feedback}
           </Link>
 
           {donateUrl && (

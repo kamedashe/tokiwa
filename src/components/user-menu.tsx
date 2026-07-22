@@ -27,6 +27,7 @@ export async function UserMenu() {
   // Донат в меню профиля: его видят вернувшиеся пользователи — та аудитория,
   // которую вообще имеет смысл просить о поддержке. Гостям хватает подвала.
   const footer = await getTranslations("footer");
+  const feedback = await getTranslations("feedback");
   const donate = pickDonateLink(await visitorCountry());
 
   return (
@@ -37,6 +38,7 @@ export async function UserMenu() {
       labels={{
         myList: t("myList"),
         backlog: t("backlog"),
+        feedback: feedback("title"),
         support: footer("support"),
         signOut: t("signOut"),
       }}

@@ -174,5 +174,20 @@
     "arts": "anime art",
     "club": "anime club",
     "manga": "manga & anime"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "intro": "Tell me what you like, what annoys you, and what's missing. This directly shapes what gets built next — and what gets removed.",
+    "placeholder": "Impressions, ideas, complaints — as is…",
+    "submit": "Send",
+    "sending": "Sending…",
+    "done": "Thanks! Every one of these gets read, honestly.",
+    "again": "Write another",
+    "error": {
+      "unauthenticated": "Please sign in first.",
+      "empty": "Can't send an empty message.",
+      "tooLong": "Too long — keep it under 2000 characters.",
+      "tooMany": "That's enough for today — up to 5 per day."
+    }
   }
 }
