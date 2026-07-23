@@ -12,6 +12,8 @@ export interface CardTitle {
   hue: number;
   score: number | null;
   tags: string;
+  /** Строка-бейдж под названием («серия 12 — завтра») — есть не у всех рядов. */
+  note?: string | null;
 }
 
 export interface HeroTitle extends CardTitle {

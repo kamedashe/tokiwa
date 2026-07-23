@@ -34,7 +34,8 @@
     "seeAll": "All →",
     "emptyTitle": "Catalog is empty",
     "emptyText": "No metadata loaded yet. Run {command} — it pulls titles from Jikan into the database.",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "nextEpisodeShort": "ep. {n} — {date}"
   },
   "catalog": {
     "title": "Catalog",
@@ -88,7 +89,9 @@
     "toCatalog": "Browse catalog",
     "newEpisodes": "New episodes out",
     "airedProgress": "you're at {progress} of {aired}",
-    "catchUp": "catch up: {time}"
+    "catchUp": "catch up: {time}",
+    "startedAiring": "Started airing",
+    "airedCount": "{count} ep. out"
   },
   "backlog": {
     "title": "How much time I have",
@@ -126,7 +129,9 @@
     "days": "{count, plural, one {# day} other {# days}}",
     "weeks": "{count, plural, one {# week} other {# weeks}}",
     "months": "{count, plural, one {# month} other {# months}}",
-    "years": "{count} years"
+    "years": "{count} years",
+    "today": "today",
+    "tomorrow": "tomorrow"
   },
   "auth": {
     "signInTitle": "Sign in to TokiWa",

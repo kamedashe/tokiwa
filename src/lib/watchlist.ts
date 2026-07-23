@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import type { CardTitle } from "@/lib/queries";
@@ -90,10 +91,48 @@ export async function getContinueWatching(locale: string, limit = 14): Promise<C
     where: { userId: session.user.id, status: "watching" },
     orderBy: { updatedAt: "desc" },
     take: limit,
-    select: { title: { select: CARD_FIELDS } },
+    select: {
+      title: {
+        select: {
+          ...CARD_FIELDS,
+          status: true,
+          episodesAired: true,
+          nextEpisodeAt: true,
+        },
+      },
+    },
   });
 
-  return entries.map((e) => toCard(e.title, locale));
+  const home = await getTranslations("home");
+  const time = await getTranslations("time");
+
+  return entries.map((e) => {
+    const card = toCard(e.title, locale);
+
+    // Бейдж «серия N — завтра» только у онгоингов с известной датой.
+    if (e.title.status === "releasing" && e.title.nextEpisodeAt) {
+      card.note = home("nextEpisodeShort", {
+        n: (e.title.episodesAired ?? 0) + 1,
+        date: relativeDate(e.title.nextEpisodeAt, locale, time),
+      });
+    }
+
+    return card;
+  });
+}
+
+/** «Сегодня»/«завтра» читаются быстрее даты — а дальше уже просто дата. */
+function relativeDate(
+  date: Date,
+  locale: string,
+  time: (key: string) => string,
+): string {
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((startOfDay(date) - startOfDay(new Date())) / 86_400_000);
+
+  if (days <= 0) return time("today");
+  if (days === 1) return time("tomorrow");
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(date);
 }
 
 export interface NewEpisodeItem {
@@ -148,6 +187,42 @@ export async function getNewEpisodes(locale: string): Promise<NewEpisodeItem[]> 
       };
     })
     .sort((a, b) => b.aired - b.progress - (a.aired - a.progress));
+}
+
+export interface PlannedAiringItem {
+  slug: string;
+  name: string;
+  aired: number;
+}
+
+/**
+ * «Начали выходить» — запланированные тайтлы, у которых уже идут серии.
+ * Свежие старты первыми: «вышла 1 серия» — самый сильный повод начать.
+ */
+export async function getPlannedAiring(locale: string): Promise<PlannedAiringItem[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  const entries = await prisma.watchlistEntry.findMany({
+    where: {
+      userId: session.user.id,
+      status: "planned",
+      title: { status: "releasing", episodesAired: { gt: 0 } },
+    },
+    select: {
+      title: {
+        select: { slug: true, title: true, titleRu: true, titleJp: true, episodesAired: true },
+      },
+    },
+  });
+
+  return entries
+    .map((e) => ({
+      slug: e.title.slug,
+      name: pickTitle(e.title, locale).title,
+      aired: e.title.episodesAired!,
+    }))
+    .sort((a, b) => a.aired - b.aired);
 }
 
 /** Весь список пользователя, сгруппированный по статусу — для страницы /my. */

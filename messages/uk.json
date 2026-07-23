@@ -34,7 +34,8 @@
     "seeAll": "Усі →",
     "emptyTitle": "Каталог порожній",
     "emptyText": "Метадані ще не завантажені. Виконайте {command} — він забере тайтли з Jikan і складе їх у базу.",
-    "refresh": "Оновити"
+    "refresh": "Оновити",
+    "nextEpisodeShort": "серія {n} — {date}"
   },
   "catalog": {
     "title": "Каталог",
@@ -88,7 +89,9 @@
     "toCatalog": "До каталогу",
     "newEpisodes": "Вийшли нові серії",
     "airedProgress": "ви на {progress} з {aired}",
-    "catchUp": "наздогнати: {time}"
+    "catchUp": "наздогнати: {time}",
+    "startedAiring": "Почали виходити",
+    "airedCount": "вийшло {count} еп."
   },
   "backlog": {
     "title": "Скільки в мене часу",
@@ -126,7 +129,9 @@
     "days": "{count, plural, one {# день} few {# дні} other {# днів}}",
     "weeks": "{count, plural, one {# тиждень} few {# тижні} other {# тижнів}}",
     "months": "{count, plural, one {# місяць} few {# місяці} other {# місяців}}",
-    "years": "{count} роки"
+    "years": "{count} роки",
+    "today": "сьогодні",
+    "tomorrow": "завтра"
   },
   "auth": {
     "signInTitle": "Вхід у TokiWa",

@@ -38,6 +38,12 @@ export function AnimeCard({ item, deg = 150 }: { item: CardTitle; deg?: number }
           {item.original && (
             <div className="mb-1 line-clamp-1 text-[10px] text-faint">{item.original}</div>
           )}
+          {/* «Серия 12 — завтра» у онгоингов в «Продолжить просмотр». */}
+          {item.note && (
+            <div className="mb-1 line-clamp-1 text-[10px] font-semibold text-accent">
+              {item.note}
+            </div>
+          )}
           <div className="text-[11px] tracking-[0.02em] text-muted-2">{item.tags}</div>
         </div>
       </div>

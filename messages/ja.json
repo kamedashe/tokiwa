@@ -34,7 +34,8 @@
     "seeAll": "すべて →",
     "emptyTitle": "カタログが空です",
     "emptyText": "メタデータがまだ読み込まれていません。{command} を実行すると Jikan から作品を取得します。",
-    "refresh": "更新"
+    "refresh": "更新",
+    "nextEpisodeShort": "第{n}話 — {date}"
   },
   "catalog": {
     "title": "カタログ",
@@ -88,7 +89,9 @@
     "toCatalog": "カタログへ",
     "newEpisodes": "新しい話数が公開",
     "airedProgress": "{aired}話中{progress}話まで視聴",
-    "catchUp": "追いつくには: {time}"
+    "catchUp": "追いつくには: {time}",
+    "startedAiring": "放送開始",
+    "airedCount": "{count}話公開中"
   },
   "backlog": {
     "title": "残り時間",
@@ -126,7 +129,9 @@
     "days": "{count}日",
     "weeks": "{count}週間",
     "months": "{count}か月",
-    "years": "{count}年"
+    "years": "{count}年",
+    "today": "今日",
+    "tomorrow": "明日"
   },
   "auth": {
     "signInTitle": "TokiWa にログイン",

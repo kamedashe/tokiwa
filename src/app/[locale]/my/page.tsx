@@ -7,7 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
 import { FeedbackNudge } from "@/components/feedback-nudge";
-import { getMyList, getNewEpisodes } from "@/lib/watchlist";
+import { getMyList, getNewEpisodes, getPlannedAiring } from "@/lib/watchlist";
 import { importFromShikimori, importFromMalFile } from "@/lib/import-actions";
 import { STATUS_ORDER } from "@/lib/watch-status";
 import { formatDuration } from "@/lib/backlog";
@@ -24,7 +24,10 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
   const grouped = await getMyList(locale);
   if (!grouped) redirect("/login?next=/my");
 
-  const newEpisodes = await getNewEpisodes(locale);
+  const [newEpisodes, plannedAiring] = await Promise.all([
+    getNewEpisodes(locale),
+    getPlannedAiring(locale),
+  ]);
 
   const nudgeLabels = {
     title: f("nudgeTitle"),
@@ -75,33 +78,66 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
           </span>
         </div>
 
-        {/* Причина возвращаться: у «смотрю» вышли серии, которых вы не видели. */}
-        {newEpisodes.length > 0 && (
+        {/* Причины возвращаться: у «смотрю» вышли новые серии, а из
+            «запланировано» что-то уже начало выходить. */}
+        {(newEpisodes.length > 0 || plannedAiring.length > 0) && (
           <div className="mt-4 max-w-[720px] rounded-2xl border border-accent/25 bg-accent/[0.05] px-5 py-4">
-            <div className="font-display text-[12px] tracking-[0.14em] text-accent">
-              {t("newEpisodes").toUpperCase()}
-            </div>
-            <div className="mt-3 flex flex-col gap-2.5">
-              {newEpisodes.map((e) => (
-                <Link
-                  key={e.slug}
-                  href={`/anime/${e.slug}`}
-                  className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+            {newEpisodes.length > 0 && (
+              <>
+                <div className="font-display text-[12px] tracking-[0.14em] text-accent">
+                  {t("newEpisodes").toUpperCase()}
+                </div>
+                <div className="mt-3 flex flex-col gap-2.5">
+                  {newEpisodes.map((e) => (
+                    <Link
+                      key={e.slug}
+                      href={`/anime/${e.slug}`}
+                      className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+                    >
+                      <span className="font-display text-[14px] font-semibold transition-colors group-hover:text-accent">
+                        {e.name}
+                      </span>
+                      <span className="text-[12px] text-muted">
+                        {t("airedProgress", { progress: e.progress, aired: e.aired })}
+                      </span>
+                      {e.catchUpMin !== null && (
+                        <span className="text-[12px] text-dim">
+                          {t("catchUp", { time: formatDuration(time, e.catchUpMin) })}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {plannedAiring.length > 0 && (
+              <>
+                <div
+                  className={`font-display text-[12px] tracking-[0.14em] text-accent ${
+                    newEpisodes.length > 0 ? "mt-5 border-t border-accent/15 pt-4" : ""
+                  }`}
                 >
-                  <span className="font-display text-[14px] font-semibold transition-colors group-hover:text-accent">
-                    {e.name}
-                  </span>
-                  <span className="text-[12px] text-muted">
-                    {t("airedProgress", { progress: e.progress, aired: e.aired })}
-                  </span>
-                  {e.catchUpMin !== null && (
-                    <span className="text-[12px] text-dim">
-                      {t("catchUp", { time: formatDuration(time, e.catchUpMin) })}
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
+                  {t("startedAiring").toUpperCase()}
+                </div>
+                <div className="mt-3 flex flex-col gap-2.5">
+                  {plannedAiring.map((e) => (
+                    <Link
+                      key={e.slug}
+                      href={`/anime/${e.slug}`}
+                      className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+                    >
+                      <span className="font-display text-[14px] font-semibold transition-colors group-hover:text-accent">
+                        {e.name}
+                      </span>
+                      <span className="text-[12px] text-muted">
+                        {t("airedCount", { count: e.aired })}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
