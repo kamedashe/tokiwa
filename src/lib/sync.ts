@@ -54,6 +54,10 @@ interface NormalizedTitle {
   status: string | null;
   score: number | null;
   episodesCount: number | null;
+  /// Есть только у Shikimori — Jikan-путь оставляет undefined, и upsert
+  /// тогда не трогает уже сохранённое значение.
+  episodesAired?: number | null;
+  nextEpisodeAt?: Date | null;
   durationMin: number | null;
   genreNames: string[];
 }
@@ -91,6 +95,8 @@ async function persistTitle(n: NormalizedTitle) {
     status: n.status,
     score: n.score,
     episodesCount: n.episodesCount,
+    episodesAired: n.episodesAired,
+    nextEpisodeAt: n.nextEpisodeAt,
     durationMin: n.durationMin,
     syncedAt: new Date(),
   };
@@ -313,6 +319,73 @@ export async function syncCatalogFromShikimoriCron({
   });
 
   return { checked, added, pagesDone, nextPage: page };
+}
+
+const ONGOING_CURSOR_KEY = "ongoingScan";
+
+/**
+ * Освежает онгоинги: сколько серий вышло и когда следующая. Это топливо для
+ * «вышли новые серии» в списках пользователей — главная причина вернуться.
+ *
+ * Обход инкрементальный по id с курсором в SyncState: выходящих тайтлов
+ * немного (~сотня), но и они не влезают в один 60-секундный прогон, поэтому
+ * каждый заход продолжает с места остановки и заворачивает на начало.
+ * Заодно ловит смену статуса: закончившийся тайтл перестанет числиться
+ * выходящим при первом же обновлении.
+ */
+export async function syncOngoingEpisodes({
+  budgetMs = 25_000,
+  onProgress,
+}: {
+  budgetMs?: number;
+  onProgress?: (message: string) => void;
+} = {}) {
+  const deadline = Date.now() + budgetMs;
+
+  const cursor = await prisma.syncState.findUnique({ where: { key: ONGOING_CURSOR_KEY } });
+  let lastId = cursor?.value ?? 0;
+
+  let updated = 0;
+
+  for (;;) {
+    if (Date.now() > deadline) break;
+
+    const batch = await prisma.title.findMany({
+      where: { status: "releasing", malId: { not: null }, id: { gt: lastId } },
+      orderBy: { id: "asc" },
+      take: 10,
+      select: { id: true, malId: true },
+    });
+
+    if (batch.length === 0) {
+      lastId = 0; // круг пройден — следующий прогон начнёт сначала
+      break;
+    }
+
+    for (const t of batch) {
+      if (Date.now() > deadline) break;
+
+      try {
+        const saved = await upsertFromShikimori(t.malId!);
+        if (saved) {
+          updated++;
+          onProgress?.(`  ↻ ${saved.titleRu ?? saved.title}`);
+        }
+      } catch {
+        // Один упавший тайтл не должен останавливать обход.
+      }
+
+      lastId = t.id;
+    }
+  }
+
+  await prisma.syncState.upsert({
+    where: { key: ONGOING_CURSOR_KEY },
+    create: { key: ONGOING_CURSOR_KEY, value: lastId },
+    update: { value: lastId },
+  });
+
+  return { updated, cursor: lastId };
 }
 
 /**

@@ -3,6 +3,7 @@ import {
   markHomepagePicks,
   syncCatalog,
   syncCatalogFromShikimoriCron,
+  syncOngoingEpisodes,
   syncRelated,
 } from "@/lib/sync";
 
@@ -56,8 +57,19 @@ async function run(request: Request) {
   try {
     if (mode === "related") {
       const result = await syncRelated({ seeds: 10, limit: 20 });
+
+      // Остаток бюджета — онгоингам: вместе со вторым кроном выходит два
+      // освежения серий в сутки.
+      const left = maxDuration * 1000 - (Date.now() - startedAt) - 5_000;
+      const ongoing = left > 5_000 ? await syncOngoingEpisodes({ budgetMs: left }) : null;
+
       await markHomepagePicks();
-      return NextResponse.json({ ok: true, mode, ...result });
+      return NextResponse.json({
+        ok: true,
+        mode,
+        ...result,
+        ongoingUpdated: ongoing?.updated ?? 0,
+      });
     }
 
     if (mode === "shikimori") {
@@ -66,12 +78,19 @@ async function run(request: Request) {
       return NextResponse.json({ ok: true, mode, ...result });
     }
 
-    // Порядок важен. Shikimori идёт первым: он предсказуемо быстрый, и за
-    // отведённое время гарантированно что-то добавит. Jikan нужен только ради
-    // свежего сезона (в топ по популярности новинки попадают с запозданием),
-    // но он то отвечает бодро, то уходит в ретраи — поэтому ему достаётся
-    // остаток бюджета, а не фиксированная доля.
-    const shikimori = await syncCatalogFromShikimoriCron({ budgetMs: 25_000 });
+    // Точечное обновление онгоингов — для ручных прогонов.
+    if (mode === "ongoing") {
+      const result = await syncOngoingEpisodes({ budgetMs: 50_000 });
+      return NextResponse.json({ ok: true, mode, ...result });
+    }
+
+    // Порядок важен. Первыми идут онгоинги: «вышла новая серия» — то, ради
+    // чего пользователи возвращаются, и эта свежесть дороже добора каталога.
+    // Затем Shikimori — он предсказуемо быстрый и гарантированно что-то
+    // добавит. Jikan нужен только ради свежего сезона, но то отвечает бодро,
+    // то уходит в ретраи — ему достаётся остаток бюджета.
+    const ongoing = await syncOngoingEpisodes({ budgetMs: 20_000 });
+    const shikimori = await syncCatalogFromShikimoriCron({ budgetMs: 15_000 });
 
     const left = maxDuration * 1000 - (Date.now() - startedAt) - 5_000;
     const synced = left > 5_000 ? await syncCatalog({ pages, budgetMs: left }) : 0;
@@ -82,6 +101,7 @@ async function run(request: Request) {
       ok: true,
       mode: "catalog",
       synced,
+      ongoingUpdated: ongoing.updated,
       shikimoriAdded: shikimori.added,
       nextPage: shikimori.nextPage,
     });

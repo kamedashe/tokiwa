@@ -96,6 +96,60 @@ export async function getContinueWatching(locale: string, limit = 14): Promise<C
   return entries.map((e) => toCard(e.title, locale));
 }
 
+export interface NewEpisodeItem {
+  slug: string;
+  name: string;
+  progress: number;
+  aired: number;
+  /** Минуты на догон — то самое «сколько времени», ради чего сайт и существует. */
+  catchUpMin: number | null;
+}
+
+/**
+ * «Вышли новые серии» — тайтлы со статусом «смотрю», у которых вышедших серий
+ * больше, чем отмечено у пользователя. Главная причина вернуться на сайт.
+ */
+export async function getNewEpisodes(locale: string): Promise<NewEpisodeItem[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  const entries = await prisma.watchlistEntry.findMany({
+    where: {
+      userId: session.user.id,
+      status: "watching",
+      title: { episodesAired: { not: null } },
+    },
+    select: {
+      progress: true,
+      title: {
+        select: {
+          slug: true,
+          title: true,
+          titleRu: true,
+          titleJp: true,
+          episodesAired: true,
+          durationMin: true,
+        },
+      },
+    },
+  });
+
+  return entries
+    .filter((e) => (e.title.episodesAired ?? 0) > e.progress)
+    .map((e) => {
+      const aired = e.title.episodesAired!;
+      const behind = aired - e.progress;
+      return {
+        slug: e.title.slug,
+        name: pickTitle(e.title, locale).title,
+        progress: e.progress,
+        aired,
+        catchUpMin: e.title.durationMin ? behind * e.title.durationMin : null,
+      };
+    })
+    .sort((a, b) => b.aired - b.progress - (a.aired - a.progress));
+}
+
 /** Весь список пользователя, сгруппированный по статусу — для страницы /my. */
 export async function getMyList(locale: string) {
   const session = await auth();

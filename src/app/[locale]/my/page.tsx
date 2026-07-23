@@ -7,9 +7,10 @@ import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
 import { FeedbackNudge } from "@/components/feedback-nudge";
-import { getMyList } from "@/lib/watchlist";
+import { getMyList, getNewEpisodes } from "@/lib/watchlist";
 import { importFromShikimori, importFromMalFile } from "@/lib/import-actions";
 import { STATUS_ORDER } from "@/lib/watch-status";
+import { formatDuration } from "@/lib/backlog";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,11 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
   const s = await getTranslations("status");
   const c = await getTranslations("catalog");
   const f = await getTranslations("feedback");
+  const time = await getTranslations("time");
   const grouped = await getMyList(locale);
   if (!grouped) redirect("/login?next=/my");
+
+  const newEpisodes = await getNewEpisodes(locale);
 
   const nudgeLabels = {
     title: f("nudgeTitle"),
@@ -70,6 +74,36 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
             {c("titlesCount", { count: total })}
           </span>
         </div>
+
+        {/* Причина возвращаться: у «смотрю» вышли серии, которых вы не видели. */}
+        {newEpisodes.length > 0 && (
+          <div className="mt-4 max-w-[720px] rounded-2xl border border-accent/25 bg-accent/[0.05] px-5 py-4">
+            <div className="font-display text-[12px] tracking-[0.14em] text-accent">
+              {t("newEpisodes").toUpperCase()}
+            </div>
+            <div className="mt-3 flex flex-col gap-2.5">
+              {newEpisodes.map((e) => (
+                <Link
+                  key={e.slug}
+                  href={`/anime/${e.slug}`}
+                  className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+                >
+                  <span className="font-display text-[14px] font-semibold transition-colors group-hover:text-accent">
+                    {e.name}
+                  </span>
+                  <span className="text-[12px] text-muted">
+                    {t("airedProgress", { progress: e.progress, aired: e.aired })}
+                  </span>
+                  {e.catchUpMin !== null && (
+                    <span className="text-[12px] text-dim">
+                      {t("catchUp", { time: formatDuration(time, e.catchUpMin) })}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {STATUS_ORDER.filter((key) => grouped[key].length > 0).map((key) => (

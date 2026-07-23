@@ -72,7 +72,8 @@
     "episodes": "{count} эп.",
     "statusReleasing": "Выходит",
     "statusFinished": "Завершён",
-    "statusAnnounced": "Анонс"
+    "statusAnnounced": "Анонс",
+    "nextEpisode": "Следующая серия — {date}"
   },
   "status": {
     "watching": "Смотрю",
@@ -84,7 +85,10 @@
     "title": "Мой список",
     "emptyTitle": "Список пуст",
     "emptyText": "Добавляйте тайтлы кнопкой «+ В список» — они появятся здесь, а то, что смотрите сейчас, попадёт на главную в ряд «Продолжить просмотр».",
-    "toCatalog": "В каталог"
+    "toCatalog": "В каталог",
+    "newEpisodes": "Вышли новые серии",
+    "airedProgress": "вы на {progress} из {aired}",
+    "catchUp": "догнать: {time}"
   },
   "backlog": {
     "title": "Сколько у меня времени",

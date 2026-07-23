@@ -72,7 +72,8 @@
     "episodes": "全{count}話",
     "statusReleasing": "放送中",
     "statusFinished": "放送終了",
-    "statusAnnounced": "放送予定"
+    "statusAnnounced": "放送予定",
+    "nextEpisode": "次の話 — {date}"
   },
   "status": {
     "watching": "見ている",
@@ -84,7 +85,10 @@
     "title": "マイリスト",
     "emptyTitle": "リストが空です",
     "emptyText": "「＋ リストに追加」で作品を追加すると、ここに表示されます。視聴中の作品はホームの「続きから見る」に並びます。",
-    "toCatalog": "カタログへ"
+    "toCatalog": "カタログへ",
+    "newEpisodes": "新しい話数が公開",
+    "airedProgress": "{aired}話中{progress}話まで視聴",
+    "catchUp": "追いつくには: {time}"
   },
   "backlog": {
     "title": "残り時間",

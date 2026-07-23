@@ -146,6 +146,18 @@ export default async function TitlePage({
 
           <div className="mt-3 text-[13px] text-muted">{meta.join(" · ")}</div>
 
+          {/* У онгоингов показываем, когда следующая серия — причина вернуться. */}
+          {title.status === "releasing" && title.nextEpisodeAt && (
+            <div className="mt-2 text-[13px] text-accent">
+              {t("nextEpisode", {
+                date: new Intl.DateTimeFormat(locale, {
+                  day: "numeric",
+                  month: "long",
+                }).format(title.nextEpisodeAt),
+              })}
+            </div>
+          )}
+
           {title.synopsis && (
             <p className="mt-6 max-w-[70ch] leading-relaxed text-pretty text-muted">
               {title.synopsis}

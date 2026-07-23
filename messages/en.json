@@ -72,7 +72,8 @@
     "episodes": "{count} ep.",
     "statusReleasing": "Airing",
     "statusFinished": "Finished",
-    "statusAnnounced": "Announced"
+    "statusAnnounced": "Announced",
+    "nextEpisode": "Next episode — {date}"
   },
   "status": {
     "watching": "Watching",
@@ -84,7 +85,10 @@
     "title": "My list",
     "emptyTitle": "Your list is empty",
     "emptyText": "Add titles with the “+ Add to list” button — they show up here, and whatever you are watching appears on the home page under “Continue watching”.",
-    "toCatalog": "Browse catalog"
+    "toCatalog": "Browse catalog",
+    "newEpisodes": "New episodes out",
+    "airedProgress": "you're at {progress} of {aired}",
+    "catchUp": "catch up: {time}"
   },
   "backlog": {
     "title": "How much time I have",

@@ -68,6 +68,8 @@ interface ShikimoriAnime {
   status: string | null;
   score: string | null;
   episodes: number | null;
+  episodes_aired: number | null;
+  next_episode_at: string | null;
   duration: number | null;
   aired_on: string | null;
   genres: { name: string; kind: string }[] | null;
@@ -174,6 +176,8 @@ export async function fetchAnimeDetails(malId: number) {
     status: a.status ? (STATUS_MAP[a.status] ?? null) : null,
     score: a.score ? Number(a.score) || null : null,
     episodesCount: a.episodes || null,
+    episodesAired: a.episodes_aired || null,
+    nextEpisodeAt: a.next_episode_at ? new Date(a.next_episode_at) : null,
     // У них длительность уже в минутах, разбирать строку не надо.
     durationMin: a.duration || null,
     genreNames: (a.genres ?? []).filter((g) => g.kind === "genre").map((g) => g.name),

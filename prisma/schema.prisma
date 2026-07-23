@@ -46,6 +46,11 @@ model Title {
   score         Float?
   episodesCount Int?
 
+  /// Сколько серий уже вышло у онгоинга и когда следующая — топливо для
+  /// «вышли новые серии» в списке пользователя. Обновляется ночным кроном.
+  episodesAired Int?
+  nextEpisodeAt DateTime?
+
   /// Ручные флаги для главной — что попадает в hero и в «Сейчас в тренде».
   isFeatured Boolean @default(false)
   isTrending Boolean @default(false)
