@@ -2,6 +2,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { pickDonateLink } from "@/lib/donate";
 import { visitorCountry } from "@/lib/geo";
+import { TelegramIcon } from "@/components/telegram-icon";
+import { TELEGRAM_URL } from "@/lib/seo";
 
 /**
  * Подвал. Нужен в основном ради ссылки на политику конфиденциальности —
@@ -29,6 +31,15 @@ export async function SiteFooter() {
           <Link href="/friends" className="transition-colors hover:text-foreground">
             {t("friends")}
           </Link>
+          <a
+            href={TELEGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 transition-colors hover:text-[#2AABEE]"
+          >
+            <TelegramIcon className="size-3.5" />
+            Telegram
+          </a>
           {donate && (
             <a
               href={donate.url}

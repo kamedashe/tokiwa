@@ -4,6 +4,8 @@ import { Logo } from "@/components/logo";
 import { SearchField } from "@/components/search-field";
 import { UserMenu } from "@/components/user-menu";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { TelegramIcon } from "@/components/telegram-icon";
+import { TELEGRAM_URL } from "@/lib/seo";
 
 const NAV = [
   { key: "home", href: "/" },
@@ -57,6 +59,18 @@ export async function SiteHeader({
 
       <div className="flex min-w-0 flex-1 items-center justify-end gap-2 md:flex-none md:gap-3">
         <SearchField initialQuery={searchQuery} />
+        {/* Канал проекта — новости и новые фичи. На узких экранах прячется:
+            место дороже, а в подвале ссылка всё равно есть. */}
+        <a
+          href={TELEGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t("telegram")}
+          title={t("telegram")}
+          className="hidden size-9 shrink-0 items-center justify-center rounded-full border border-hairline text-subtle transition-colors hover:border-[#2AABEE]/50 hover:text-[#2AABEE] sm:flex"
+        >
+          <TelegramIcon className="size-[18px]" />
+        </a>
         <LanguageSwitcher />
         <UserMenu />
       </div>

@@ -2,6 +2,10 @@ import { routing } from "@/i18n/routing";
 
 export const SITE_URL = "https://www.tokiwa.moe";
 
+/** Канал проекта — новости и фичи. Заодно страховка: сайт может лечь,
+ *  а канал останется способом сказать об этом людям. */
+export const TELEGRAM_URL = "https://t.me/TokiWa_TG";
+
 /**
  * hreflang для конкретного пути. path — путь без языкового префикса
  * (например "/catalog" или `/anime/${slug}`), с ведущим слэшем.
