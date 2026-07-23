@@ -8,7 +8,7 @@ import { localeAlternates } from "@/lib/seo";
 // Шапка показывает профиль текущего пользователя.
 export const dynamic = "force-dynamic";
 
-type TagKey = "edits" | "arts" | "club" | "manga" | "picks";
+type TagKey = "edits" | "arts" | "club" | "manga" | "picks" | "memes";
 
 /**
  * Бартерная договорённость: каналы бесплатно рассказали о TokiWa, мы взамен
@@ -21,6 +21,7 @@ const CHANNELS: { name: string; url: string; tagKey: TagKey }[] = [
   { name: "Аниме клуб MUZA", url: "https://t.me/MUZA_animeclub", tagKey: "club" },
   { name: "Человек Бензопила", url: "https://t.me/chainsaw_man_fan", tagKey: "manga" },
   { name: "Anime Seek", url: "https://t.me/AnimeSeek", tagKey: "picks" },
+  { name: "Анимегид извращенца", url: "https://t.me/anime_v_butovo", tagKey: "memes" },
 ];
 
 /** «t.me/xxx» → «@xxx» — по хендлу канал ищется в Telegram напрямую. */
