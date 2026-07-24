@@ -88,6 +88,21 @@ model Genre {
   titles Title[]
 }
 
+/// Привязка Telegram-чата для уведомлений о новых сериях. Пока chatId пуст,
+/// строка хранит одноразовый код с кнопки «Подключить» — бот обменяет его
+/// на chatId при /start.
+model TelegramLink {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Идентификаторы чатов Telegram не влезают в Int32.
+  chatId        BigInt?   @unique
+  code          String?   @unique
+  codeExpiresAt DateTime?
+
+  createdAt DateTime @default(now())
+}
+
 /// Отзывы пользователей — сырьё для решений, что внедрять, а что убирать.
 /// Пишут только залогиненные: это отсекает ботов и даёт возможность ответить.
 model Feedback {
@@ -111,10 +126,11 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts  Account[]
-  sessions  Session[]
-  watchlist WatchlistEntry[]
-  feedback  Feedback[]
+  accounts     Account[]
+  sessions     Session[]
+  watchlist    WatchlistEntry[]
+  feedback     Feedback[]
+  telegramLink TelegramLink?
 
   createdAt DateTime @default(now())
 }
@@ -168,6 +184,9 @@ model WatchlistEntry {
 
   /// На какой серии остановились — для ряда «Продолжить просмотр».
   progress Int @default(0)
+
+  /// До какой вышедшей серии уже уведомляли в Telegram — антидубль рассылки.
+  notifiedEpisode Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

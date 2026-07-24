@@ -7,10 +7,14 @@ import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
 import { FeedbackNudge } from "@/components/feedback-nudge";
+import { TelegramConnect } from "@/components/telegram-connect";
 import { getMyList, getNewEpisodes, getPlannedAiring } from "@/lib/watchlist";
 import { importFromShikimori, importFromMalFile } from "@/lib/import-actions";
 import { STATUS_ORDER } from "@/lib/watch-status";
 import { formatDuration } from "@/lib/backlog";
+import { telegramBotUsername } from "@/lib/telegram";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +32,28 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
     getNewEpisodes(locale),
     getPlannedAiring(locale),
   ]);
+
+  // Блок подключения бота появляется, только когда бот вообще настроен.
+  let telegramLinked: boolean | null = null;
+  if (telegramBotUsername()) {
+    const session = await auth();
+    const link = session?.user?.id
+      ? await prisma.telegramLink.findUnique({
+          where: { userId: session.user.id },
+          select: { chatId: true },
+        })
+      : null;
+    telegramLinked = Boolean(link?.chatId);
+  }
+
+  const tgLabels = {
+    title: t("tgTitle"),
+    text: t("tgText"),
+    connect: t("tgConnect"),
+    open: t("tgOpen"),
+    linked: t("tgLinked"),
+    unlink: t("tgUnlink"),
+  };
 
   const nudgeLabels = {
     title: f("nudgeTitle"),
@@ -154,7 +180,10 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
       ))}
 
       {/* Просьба о фидбеке — только у тех, кто реально ведёт список. */}
-      <div className="mx-auto max-w-[720px] px-4 pt-10 md:px-10">
+      <div className="mx-auto flex max-w-[720px] flex-col gap-3 px-4 pt-10 md:px-10">
+        {telegramLinked !== null && (
+          <TelegramConnect linked={telegramLinked} labels={tgLabels} />
+        )}
         <FeedbackNudge labels={nudgeLabels} />
       </div>
 

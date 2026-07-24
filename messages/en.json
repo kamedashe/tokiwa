@@ -92,7 +92,13 @@
     "airedProgress": "you're at {progress} of {aired}",
     "catchUp": "catch up: {time}",
     "startedAiring": "Started airing",
-    "airedCount": "{count} ep. out"
+    "airedCount": "{count} ep. out",
+    "tgTitle": "Telegram notifications",
+    "tgText": "The bot will message you when titles you're watching get new episodes.",
+    "tgConnect": "Connect",
+    "tgOpen": "Open the bot and press Start",
+    "tgLinked": "Connected",
+    "tgUnlink": "Disconnect"
   },
   "backlog": {
     "title": "How much time I have",

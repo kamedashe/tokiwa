@@ -92,7 +92,13 @@
     "airedProgress": "вы на {progress} из {aired}",
     "catchUp": "догнать: {time}",
     "startedAiring": "Начали выходить",
-    "airedCount": "вышло {count} эп."
+    "airedCount": "вышло {count} эп.",
+    "tgTitle": "Уведомления в Telegram",
+    "tgText": "Бот напишет, когда у тайтлов из «Смотрю» выйдут новые серии.",
+    "tgConnect": "Подключить",
+    "tgOpen": "Открыть бота и нажать Start",
+    "tgLinked": "Подключено",
+    "tgUnlink": "Отключить"
   },
   "backlog": {
     "title": "Сколько у меня времени",

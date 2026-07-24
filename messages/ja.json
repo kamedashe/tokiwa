@@ -92,7 +92,13 @@
     "airedProgress": "{aired}話中{progress}話まで視聴",
     "catchUp": "追いつくには: {time}",
     "startedAiring": "放送開始",
-    "airedCount": "{count}話公開中"
+    "airedCount": "{count}話公開中",
+    "tgTitle": "Telegram通知",
+    "tgText": "「見ている」作品に新しい話が公開されたらボットがお知らせします。",
+    "tgConnect": "接続する",
+    "tgOpen": "ボットを開いてStartを押す",
+    "tgLinked": "接続済み",
+    "tgUnlink": "解除"
   },
   "backlog": {
     "title": "残り時間",
