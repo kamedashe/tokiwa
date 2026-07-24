@@ -24,6 +24,7 @@ const CHANNELS: { name: string; url: string; tagKey: TagKey }[] = [
   { name: "Anime Seek", url: "https://t.me/AnimeSeek", tagKey: "picks" },
   { name: "Анимегид извращенца", url: "https://t.me/anime_v_butovo", tagKey: "memes" },
   { name: "Аниме на каждый день", url: "https://t.me/AnimeForEveryDays", tagKey: "picks" },
+  { name: "Anime Fan / Аниме клипы", url: "https://t.me/animefan_clips", tagKey: "edits" },
 ];
 
 /** «t.me/xxx» → «@xxx» — по хендлу канал ищется в Telegram напрямую. */
