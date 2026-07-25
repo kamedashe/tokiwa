@@ -28,6 +28,7 @@ export async function UserMenu() {
   // которую вообще имеет смысл просить о поддержке. Гостям хватает подвала.
   const footer = await getTranslations("footer");
   const feedback = await getTranslations("feedback");
+  const wrapped = await getTranslations("wrapped");
   const donate = pickDonateLink(await visitorCountry());
 
   return (
@@ -38,6 +39,7 @@ export async function UserMenu() {
       labels={{
         myList: t("myList"),
         backlog: t("backlog"),
+        wrapped: wrapped("menu"),
         feedback: feedback("title"),
         support: footer("support"),
         signOut: t("signOut"),

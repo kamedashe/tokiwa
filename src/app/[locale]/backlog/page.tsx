@@ -28,6 +28,7 @@ export default async function BacklogPage({
   const [{ budget: budgetKey }, { locale }] = await Promise.all([searchParams, params]);
   const t = await getTranslations("backlog");
   const time = await getTranslations("time");
+  const wrapped = await getTranslations("wrapped");
 
   const budget = budgetMinutes(budgetKey ?? "") ?? null;
 
@@ -49,6 +50,12 @@ export default async function BacklogPage({
       <div className="mx-auto max-w-[1100px] px-4 py-8 md:px-10">
         <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">{t("title")}</h1>
         <p className="mt-2 max-w-[60ch] text-[15px] text-muted">{t("intro")}</p>
+        <Link
+          href="/wrapped"
+          className="mt-3 inline-block rounded-full border border-hairline px-4 py-1.5 text-[13px] text-muted transition-colors hover:border-accent/50 hover:text-accent"
+        >
+          {wrapped("menu")} →
+        </Link>
 
         {totalAhead === 0 && stats.completedCount === 0 ? (
           <Empty text={t("emptyText")} cta={t("getTitles")} />

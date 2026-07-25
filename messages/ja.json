@@ -211,5 +211,23 @@
     "nudgeText": "良い点・不満・足りない機能など、二三行でも大きな助けになります。",
     "nudgeCta": "フィードバックを送る",
     "nudgeClose": "閉じる"
+  },
+  "wrapped": {
+    "title": "私のアニメ記録",
+    "intro": "リストに積み上がったすべてを、正直な数字で。",
+    "hoursWatched": "総視聴時間",
+    "daysOfLife": "≈ 人生の{days}日分",
+    "episodes": "視聴した話数",
+    "completed": "完走した作品",
+    "dropped": "中断",
+    "dropRate": "開始した作品の{percent}%",
+    "avgScore": "完走作品の平均スコア",
+    "topGenres": "好きなジャンル",
+    "longest": "最も長い作品",
+    "share": "記録をシェア",
+    "copied": "コピーしました",
+    "shareText": "アニメを{hours}時間見ました。人生の{days}日分です💀 好きなジャンル: {genres}。自分のも数えてみて: tokiwa.moe",
+    "empty": "リストが空です。まだ集計できません。",
+    "menu": "私の記録"
   }
 }

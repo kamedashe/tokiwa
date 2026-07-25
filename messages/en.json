@@ -211,5 +211,23 @@
     "nudgeText": "What works, what annoys you, what's missing — a couple of sentences help a lot.",
     "nudgeCta": "Leave feedback",
     "nudgeClose": "Dismiss"
+  },
+  "wrapped": {
+    "title": "My anime in numbers",
+    "intro": "Everything your list has accumulated — in honest numbers.",
+    "hoursWatched": "HOURS WATCHED",
+    "daysOfLife": "≈ {days, plural, one {# day} other {# days}} of your life",
+    "episodes": "Episodes watched",
+    "completed": "Titles finished",
+    "dropped": "Dropped",
+    "dropRate": "{percent}% of everything started",
+    "avgScore": "Average score of finished",
+    "topGenres": "FAVOURITE GENRES",
+    "longest": "LONGEST TITLE",
+    "share": "Share my stats",
+    "copied": "Copied",
+    "shareText": "I've watched {hours} hours of anime — that's {days} days of my life 💀 Top genres: {genres}. Count yours: tokiwa.moe",
+    "empty": "Your list is empty — nothing to sum up yet.",
+    "menu": "My stats"
   }
 }
