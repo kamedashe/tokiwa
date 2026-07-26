@@ -87,11 +87,14 @@ export default async function BacklogPage({
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
                   <Pace label={t("perHour")} value={paceEstimate(time, totalAhead, 60)} />
-                  <Pace label={t("perTwoHours")} value={paceEstimate(time, totalAhead, 120)} />
+                  {/* 6 часов в каждый выходной — 12 ч в неделю, как и «Выходные»
+                      в бюджете ниже. Стоит между часом и двумя, чтобы темпы
+                      шли по возрастанию и три подписи не совпадали. */}
                   <Pace
                     label={t("perWeekend")}
-                    value={paceEstimate(time, totalAhead, (6 * 60) / 7)}
+                    value={paceEstimate(time, totalAhead, (12 * 60) / 7)}
                   />
+                  <Pace label={t("perTwoHours")} value={paceEstimate(time, totalAhead, 120)} />
                 </div>
 
                 {/* Человек только что увидел свои часы — лучший момент,
