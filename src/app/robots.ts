@@ -11,7 +11,19 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "*/my", "*/backlog", "*/login", "*/feedback", "*/wrapped"],
+      // Адреса-метки — редиректы для рекламы, в индексе им делать нечего.
+      disallow: [
+        "/api/",
+        "*/my",
+        "*/backlog",
+        "*/login",
+        "*/feedback",
+        "*/wrapped",
+        "/tt",
+        "/yt",
+        "/ig",
+        "/tg",
+      ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
