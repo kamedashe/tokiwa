@@ -139,7 +139,16 @@ export default async function WrappedPage({
         )}
 
         <div className="mt-8 flex justify-center">
-          <ShareStats text={shareText} labels={{ share: t("share"), copied: t("copied") }} />
+          <ShareStats
+            locale={locale}
+            text={shareText}
+            labels={{
+              shareImage: t("shareImage"),
+              preparing: t("preparing"),
+              shareTextOnly: t("shareTextOnly"),
+              copied: t("copied"),
+            }}
+          />
         </div>
       </div>
 

@@ -228,6 +228,9 @@
     "copied": "Copied",
     "shareText": "I've watched {hours} hours of anime — that's {days} days of my life 💀 Top genres: {genres}. Count yours: tokiwa.moe",
     "empty": "Your list is empty — nothing to sum up yet.",
-    "menu": "My stats"
+    "menu": "My stats",
+    "shareImage": "Share as image",
+    "preparing": "Preparing image…",
+    "shareTextOnly": "copy as text"
   }
 }

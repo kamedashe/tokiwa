@@ -228,6 +228,9 @@
     "copied": "コピーしました",
     "shareText": "アニメを{hours}時間見ました。人生の{days}日分です💀 好きなジャンル: {genres}。自分のも数えてみて: tokiwa.moe",
     "empty": "リストが空です。まだ集計できません。",
-    "menu": "私の記録"
+    "menu": "私の記録",
+    "shareImage": "画像でシェア",
+    "preparing": "画像を生成中…",
+    "shareTextOnly": "テキストでコピー"
   }
 }
