@@ -147,6 +147,7 @@ export default async function WrappedPage({
               preparing: t("preparing"),
               shareTextOnly: t("shareTextOnly"),
               copied: t("copied"),
+              failed: t("shareFailed"),
             }}
           />
         </div>

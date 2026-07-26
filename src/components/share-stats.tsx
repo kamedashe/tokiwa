@@ -3,12 +3,12 @@
 import { useState } from "react";
 
 /**
- * Шаринг итогов. Главная кнопка отдаёт картинку 1080×1920 — формат сторис,
- * его и репостят; текстом делятся куда реже.
+ * Шаринг итогов. Главное — картинка 1080×1920: текстом делятся редко,
+ * сторис репостят охотно.
  *
- * Отправить файл умеет только Web Share второго уровня (телефоны), поэтому
- * на десктопе картинка просто скачивается — оттуда её всё равно перетащат
- * в пост руками.
+ * Отправить файл умеет только Web Share второго уровня, да и тот капризен:
+ * после ожидания сети право на открытие системного окна успевает истечь.
+ * Поэтому любое падение шаринга — не тупик, а переход к скачиванию.
  */
 export function ShareStats({
   locale,
@@ -17,16 +17,44 @@ export function ShareStats({
 }: {
   locale: string;
   text: string;
-  labels: { shareImage: string; preparing: string; shareTextOnly: string; copied: string };
+  labels: {
+    shareImage: string;
+    preparing: string;
+    shareTextOnly: string;
+    copied: string;
+    failed: string;
+  };
 }) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  /**
+   * Ссылку обязательно кладём в документ, а адрес освобождаем с задержкой:
+   * click() лишь ставит загрузку в очередь, и мгновенный revoke её отменяет —
+   * со стороны выглядит как «кнопка не работает».
+   */
+  const download = (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tokiwa.png";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  };
 
   const shareImage = async () => {
     setBusy(true);
+    setFailed(false);
+
     try {
       const res = await fetch(`/api/wrapped-image?locale=${locale}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        setFailed(true);
+        return;
+      }
 
       const blob = await res.blob();
       const file = new File([blob], "tokiwa.png", { type: "image/png" });
@@ -35,20 +63,16 @@ export function ShareStats({
         try {
           await navigator.share({ files: [file], text });
           return;
-        } catch {
-          // Закрыл системное меню — не ошибка, просто выходим.
-          return;
+        } catch (error) {
+          // Закрыл окно сам — уважаем выбор и молчим. Любая другая
+          // причина (истёкшее разрешение, нет приложений) — скачиваем.
+          if ((error as Error)?.name === "AbortError") return;
         }
       }
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "tokiwa.png";
-      a.click();
-      URL.revokeObjectURL(url);
+      download(blob);
     } catch {
-      // Сеть отвалилась — кнопка просто вернётся в исходное состояние.
+      setFailed(true);
     } finally {
       setBusy(false);
     }
@@ -60,7 +84,7 @@ export function ShareStats({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Буфер запрещён — молчим.
+      setFailed(true);
     }
   };
 
@@ -82,6 +106,8 @@ export function ShareStats({
       >
         {copied ? `✓ ${labels.copied}` : labels.shareTextOnly}
       </button>
+
+      {failed && <p className="text-[13px] text-red-400">{labels.failed}</p>}
     </div>
   );
 }

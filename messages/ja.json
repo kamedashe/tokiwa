@@ -231,6 +231,7 @@
     "menu": "私の記録",
     "shareImage": "画像でシェア",
     "preparing": "画像を生成中…",
-    "shareTextOnly": "テキストでコピー"
+    "shareTextOnly": "テキストでコピー",
+    "shareFailed": "失敗しました。もう一度お試しください。"
   }
 }

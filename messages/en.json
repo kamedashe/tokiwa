@@ -231,6 +231,7 @@
     "menu": "My stats",
     "shareImage": "Share as image",
     "preparing": "Preparing image…",
-    "shareTextOnly": "copy as text"
+    "shareTextOnly": "copy as text",
+    "shareFailed": "Didn't work. Try again."
   }
 }
