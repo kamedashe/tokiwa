@@ -25,11 +25,18 @@ const CHANNELS: { name: string; url: string; tagKey: TagKey }[] = [
   { name: "Анимегид извращенца", url: "https://t.me/anime_v_butovo", tagKey: "memes" },
   { name: "Аниме на каждый день", url: "https://t.me/AnimeForEveryDays", tagKey: "picks" },
   { name: "Anime Fan / Аниме клипы", url: "https://t.me/animefan_clips", tagKey: "edits" },
+  { name: "Loy | Аниме Эдиты", url: "https://t.me/Loy_Anime_Edits", tagKey: "edits" },
+  { name: "HuB Otaku", url: "https://t.me/+fJnZOvlu7EMwMmYy", tagKey: "manga" },
 ];
 
-/** «t.me/xxx» → «@xxx» — по хендлу канал ищется в Telegram напрямую. */
-function handleOf(url: string): string {
-  return "@" + url.replace(/^https:\/\/t\.me\//, "");
+/**
+ * «t.me/xxx» → «@xxx»: по хендлу канал ищется в Telegram напрямую.
+ * У закрытых каналов вместо имени ссылка-приглашение («t.me/+AbC…») —
+ * показывать её как хендл бессмысленно, поэтому null.
+ */
+function handleOf(url: string): string | null {
+  const path = url.replace(/^https:\/\/t\.me\//, "");
+  return path.startsWith("+") ? null : "@" + path;
 }
 
 export async function generateMetadata({
@@ -54,7 +61,9 @@ export default async function FriendsPage() {
         <p className="mt-2 max-w-[56ch] text-muted">{t("note")}</p>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          {CHANNELS.map((c) => (
+          {CHANNELS.map((c) => {
+            const handle = handleOf(c.url);
+            return (
             <a
               key={c.url}
               href={c.url}
@@ -66,14 +75,15 @@ export default async function FriendsPage() {
               <span className="flex min-w-0 flex-col">
                 <span className="truncate font-display text-[15px] font-semibold">{c.name}</span>
                 <span className="truncate text-[12px] text-dim">
-                  {handleOf(c.url)} · {t(c.tagKey)}
+                  {handle ? `${handle} · ${t(c.tagKey)}` : t(c.tagKey)}
                 </span>
               </span>
               <span className="ml-auto text-[13px] text-dim transition-colors group-hover:text-[#2AABEE]">
                 ↗
               </span>
             </a>
-          ))}
+            );
+          })}
         </div>
       </div>
 
