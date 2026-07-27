@@ -50,7 +50,9 @@ export function ShareStats({
     setFailed(false);
 
     try {
-      const res = await fetch(`/api/wrapped-image?locale=${locale}`);
+      // no-store — мимо HTTP-кэша: у ранних пользователей там навечно
+      // осел пустой PNG со сломанной версии, помеченный immutable.
+      const res = await fetch(`/api/wrapped-image?locale=${locale}`, { cache: "no-store" });
       if (!res.ok) {
         setFailed(true);
         return;

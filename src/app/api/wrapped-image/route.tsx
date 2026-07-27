@@ -150,6 +150,10 @@ export async function GET(request: Request) {
         { name: "Manrope", data: medium, weight: 500, style: "normal" },
         { name: "Manrope", data: extraBold, weight: 800, style: "normal" },
       ],
+      // Без этого ImageResponse ставит public immutable на год: браузер
+      // навсегда запоминает первый ответ, а CDN может отдать картинку
+      // одного пользователя другому — URL-то у всех одинаковый.
+      headers: { "cache-control": "private, no-store" },
     },
   );
 }
