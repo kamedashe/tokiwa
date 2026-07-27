@@ -7,8 +7,11 @@ const nextConfig: NextConfig = {
   // Рендерер картинки итогов на Node-рантайме: без явного указания Vercel
   // не кладёт wasm-движки (yoga/resvg) в бандл функции — локально всё
   // работает, в проде ENOENT и пятисотка.
+  // Ключ должен совпасть с тем, как Next назвал функцию, а это между
+  // версиями гуляло — перечисляем оба написания, лишний не мешает.
   outputFileTracingIncludes: {
     "/api/wrapped-image": ["./node_modules/next/dist/compiled/@vercel/og/**"],
+    "/api/wrapped-image/route": ["./node_modules/next/dist/compiled/@vercel/og/**"],
   },
 
   images: {
