@@ -1,23 +1,25 @@
 import { ImageResponse } from "next/og";
-import { getTranslations } from "next-intl/server";
+import { createTranslator } from "next-intl";
 import { routing } from "@/i18n/routing";
-import { getWrappedStats } from "@/lib/wrapped-queries";
+import ru from "../../../../messages/ru.json";
+import uk from "../../../../messages/uk.json";
+import en from "../../../../messages/en.json";
+import ja from "../../../../messages/ja.json";
+import type { WrappedStats } from "@/lib/wrapped-queries";
 
 /**
  * Картинка итогов 1080×1920 — формат сторис, его и репостят.
  *
- * Node, а не edge: статистику считаем через Prisma. Отсюда же требование к
- * шрифту — без него кириллица станет квадратиками, своих глифов у рендерера
- * нет, а привычный `fetch(new URL(…, import.meta.url))` из примеров про
- * edge на Node падает: файловый протокол он не умеет. Поэтому шрифты лежат
- * в статике и берутся по адресу самого сайта.
+ * Рантайм именно edge: на Node wasm-движки рендерера (yoga/resvg) роняют
+ * функцию ещё на импорте, до любого try/catch — в проде это выглядело как
+ * голая пятисотка Vercel. На edge нет Prisma, поэтому статистику отдаёт
+ * соседний Node-роут /api/wrapped-data, а куки пересылаются насквозь —
+ * авторизация остаётся той же. Словари подключены статикой: next-intl'ному
+ * getTranslations нужен реквест-контекст, а чистому createTranslator — нет.
  */
-export const runtime = "nodejs";
+export const runtime = "edge";
 
-// По умолчанию функции живут 10 секунд, а холодный старт с Prisma, двумя
-// шрифтами и отрисовкой 1080×1920 в это окно не влезает — запрос убивался
-// на полпути, и кнопка «не работала».
-export const maxDuration = 60;
+const MESSAGES: Record<string, { wrapped: Record<string, string> }> = { ru, uk, en, ja };
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -33,45 +35,22 @@ export async function GET(request: Request) {
   const raw = searchParams.get("locale") ?? routing.defaultLocale;
   const locale = (routing.locales as readonly string[]).includes(raw) ? raw : routing.defaultLocale;
 
-  const stats = await getWrappedStats(locale);
-  if (!stats || stats.watchedMinutes === 0) {
-    return new Response("Нет данных", { status: 404 });
+  // Куки исходного запроса — иначе Node-ручка не узнает пользователя.
+  const statsRes = await fetch(new URL("/api/wrapped-data?locale=" + locale, request.url), {
+    headers: { cookie: request.headers.get("cookie") ?? "" },
+  });
+  if (!statsRes.ok) {
+    return new Response("Нет данных", { status: statsRes.status });
   }
+  const stats = (await statsRes.json()) as WrappedStats;
 
-  try {
-    const t = await getTranslations({ locale, namespace: "wrapped" });
+  const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: "wrapped" });
 
-    // Адрес берём из самого запроса: локально это localhost, в проде — домен.
-    const [medium, extraBold] = await Promise.all([
-      fetchFont(new URL("/fonts/Manrope-Medium.ttf", request.url)),
-      fetchFont(new URL("/fonts/Manrope-ExtraBold.ttf", request.url)),
-    ]);
+  const [medium, extraBold] = await Promise.all([
+    fetch(new URL("/fonts/Manrope-Medium.ttf", request.url)).then((r) => r.arrayBuffer()),
+    fetch(new URL("/fonts/Manrope-ExtraBold.ttf", request.url)).then((r) => r.arrayBuffer()),
+  ]);
 
-    return renderImage(stats, t, { medium, extraBold });
-  } catch (error) {
-    console.error("wrapped-image:", error);
-    // Текст ошибки наружу — временно, пока ловим прод-специфичную причину:
-    // стримить логи задним числом Vercel не даёт, а так диагноз виден
-    // прямо в браузере. Убрать после стабилизации.
-    return new Response(`Не собралось: ${String(error)}`, { status: 500 });
-  }
-}
-
-/** Битый шрифт роняет рендерер глубоко внутри — проверяем ответ сразу. */
-async function fetchFont(url: URL): Promise<ArrayBuffer> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`шрифт ${url.pathname}: HTTP ${res.status}`);
-  return res.arrayBuffer();
-}
-
-type Translate = Awaited<ReturnType<typeof getTranslations<"wrapped">>>;
-type Stats = NonNullable<Awaited<ReturnType<typeof getWrappedStats>>>;
-
-function renderImage(
-  stats: Stats,
-  t: Translate,
-  fonts: { medium: ArrayBuffer; extraBold: ArrayBuffer },
-) {
   const hours = Math.round(stats.watchedMinutes / 60);
   const days = Math.round(stats.watchedMinutes / 60 / 24);
 
@@ -143,8 +122,8 @@ function renderImage(
       width: WIDTH,
       height: HEIGHT,
       fonts: [
-        { name: "Manrope", data: fonts.medium, weight: 500, style: "normal" },
-        { name: "Manrope", data: fonts.extraBold, weight: 800, style: "normal" },
+        { name: "Manrope", data: medium, weight: 500, style: "normal" },
+        { name: "Manrope", data: extraBold, weight: 800, style: "normal" },
       ],
     },
   );
