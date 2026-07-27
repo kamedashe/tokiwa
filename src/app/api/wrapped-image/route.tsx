@@ -35,14 +35,34 @@ export async function GET(request: Request) {
   const raw = searchParams.get("locale") ?? routing.defaultLocale;
   const locale = (routing.locales as readonly string[]).includes(raw) ? raw : routing.defaultLocale;
 
-  // Куки исходного запроса — иначе Node-ручка не узнает пользователя.
-  const statsRes = await fetch(new URL("/api/wrapped-data?locale=" + locale, request.url), {
-    headers: { cookie: request.headers.get("cookie") ?? "" },
-  });
-  if (!statsRes.ok) {
-    return new Response("Нет данных", { status: statsRes.status });
+  // Демо-данные для локальной отладки рендера без авторизации.
+  // В прод-сборке ветка мертва — параметр игнорируется.
+  let stats: WrappedStats;
+  if (searchParams.get("demo") === "1" && process.env.NODE_ENV !== "production") {
+    stats = {
+      watchedMinutes: 57 * 60,
+      episodesWatched: 135,
+      completedCount: 12,
+      droppedCount: 2,
+      dropRate: 14,
+      topGenres: [
+        { name: "Драма", count: 7 },
+        { name: "Фантастика", count: 5 },
+        { name: "Романтика", count: 4 },
+      ],
+      longest: { name: "Ван-Пис: очень длинное название тайтла для проверки обрезки", slug: "one-piece", minutes: 26000 },
+      avgScore: 8.6,
+    } as WrappedStats;
+  } else {
+    // Куки исходного запроса — иначе Node-ручка не узнает пользователя.
+    const statsRes = await fetch(new URL("/api/wrapped-data?locale=" + locale, request.url), {
+      headers: { cookie: request.headers.get("cookie") ?? "" },
+    });
+    if (!statsRes.ok) {
+      return new Response("Нет данных", { status: statsRes.status });
+    }
+    stats = (await statsRes.json()) as WrappedStats;
   }
-  const stats = (await statsRes.json()) as WrappedStats;
 
   const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: "wrapped" });
 
@@ -93,7 +113,9 @@ export async function GET(request: Request) {
               color: ACCENT,
             }}
           >
-            {hours}
+            {/* Только строкой: число как ребёнок JSX роняет рендерер
+                посреди стрима — снаружи это 200 и пустой файл. */}
+            {String(hours)}
           </div>
           {days >= 1 && (
             <div style={{ marginTop: 18, fontSize: 44, color: MUTED }}>{t("daysOfLife", { days })}</div>
