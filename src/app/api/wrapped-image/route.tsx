@@ -35,10 +35,13 @@ export async function GET(request: Request) {
   const raw = searchParams.get("locale") ?? routing.defaultLocale;
   const locale = (routing.locales as readonly string[]).includes(raw) ? raw : routing.defaultLocale;
 
-  // Демо-данные для локальной отладки рендера без авторизации.
-  // В прод-сборке ветка мертва — параметр игнорируется.
+  // Демо-данные для отладки рендера без авторизации: локально — свободно,
+  // в проде — только с ключом синков, чтобы дверца не торчала наружу.
+  const demoAllowed =
+    process.env.NODE_ENV !== "production" ||
+    (!!process.env.SYNC_SECRET && searchParams.get("secret") === process.env.SYNC_SECRET);
   let stats: WrappedStats;
-  if (searchParams.get("demo") === "1" && process.env.NODE_ENV !== "production") {
+  if (searchParams.get("demo") === "1" && demoAllowed) {
     stats = {
       watchedMinutes: 57 * 60,
       episodesWatched: 135,
