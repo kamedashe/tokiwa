@@ -4,6 +4,13 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  // Рендерер картинки итогов на Node-рантайме: без явного указания Vercel
+  // не кладёт wasm-движки (yoga/resvg) в бандл функции — локально всё
+  // работает, в проде ENOENT и пятисотка.
+  outputFileTracingIncludes: {
+    "/api/wrapped-image": ["./node_modules/next/dist/compiled/@vercel/og/**"],
+  },
+
   images: {
     // Оптимизатор Vercel на бесплатном тарифе не тянет каталог в 15 тыс.
     // постеров — квота трансформаций сгорает, картинки отдают 402. Свой

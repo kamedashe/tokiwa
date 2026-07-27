@@ -49,9 +49,11 @@ export async function GET(request: Request) {
 
     return renderImage(stats, t, { medium, extraBold });
   } catch (error) {
-    // В лог — целиком, наружу — коротко: клиент покажет своё сообщение.
     console.error("wrapped-image:", error);
-    return new Response("Не собралось", { status: 500 });
+    // Текст ошибки наружу — временно, пока ловим прод-специфичную причину:
+    // стримить логи задним числом Vercel не даёт, а так диагноз виден
+    // прямо в браузере. Убрать после стабилизации.
+    return new Response(`Не собралось: ${String(error)}`, { status: 500 });
   }
 }
 
