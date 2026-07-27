@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getActorId } from "@/lib/guest";
 import { fetchShikimoriList, readMalExport, type ImportedEntry } from "@/lib/import-list";
 import { upsertFromShikimori } from "@/lib/sync";
 
@@ -66,11 +66,11 @@ export type ImportResponse =
  * почти всегда разовый и первичный.
  */
 async function applyEntries(entries: ImportedEntry[]): Promise<ImportResponse> {
-  const session = await auth();
-  if (!session?.user?.id) return { ok: false, reason: "unauthenticated" };
   if (entries.length === 0) return { ok: false, reason: "empty" };
 
-  const userId = session.user.id;
+  // Импорт доступен и гостю: «посчитать уже просмотренное» — главный
+  // сценарий знакомства, ставить перед ним стену регистрации глупо.
+  const userId = await getActorId();
 
   // Дубли по malId возможны — оставляем первое вхождение.
   const unique = new Map<number, ImportedEntry>();

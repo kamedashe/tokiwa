@@ -233,5 +233,10 @@
     "preparing": "Preparing image…",
     "shareTextOnly": "copy as text",
     "shareFailed": "Didn't work. Try again."
+  },
+  "guest": {
+    "saveTitle": "Your list lives in this browser",
+    "saveText": "An account adds what a cookie can't: new-episode notifications for your shows, your list on any device — and it survives clearing your history.",
+    "saveCta": "Sign in to save"
   }
 }

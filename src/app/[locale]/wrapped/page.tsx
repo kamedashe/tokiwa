@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ShareStats } from "@/components/share-stats";
-import { auth } from "@/auth";
 import { getWrappedStats } from "@/lib/wrapped-queries";
 import { formatDuration } from "@/lib/backlog";
 
@@ -29,9 +27,8 @@ export default async function WrappedPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await auth();
-  if (!session?.user) redirect("/login?next=/wrapped");
-
+  // Итоги открыты и гостям: их список считается так же, а картинка
+  // с цифрами — лучший крючок, чтобы захотеть аккаунт.
   const t = await getTranslations("wrapped");
   const time = await getTranslations("time");
   const stats = await getWrappedStats(locale);

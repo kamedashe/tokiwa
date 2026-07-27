@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { AnimeCard } from "@/components/anime-card";
+import { GuestBanner } from "@/components/guest-banner";
 import { auth } from "@/auth";
 import { getBacklogStats, getFitting, type BacklogItem } from "@/lib/backlog-queries";
 import { TIME_BUDGETS, budgetMinutes, formatDuration, paceEstimate } from "@/lib/backlog";
@@ -22,8 +22,9 @@ export default async function BacklogPage({
   searchParams: Promise<{ budget?: string }>;
   params: Promise<{ locale: string }>;
 }) {
+  // Математика времени открыта и гостям — это главная фича сайта,
+  // прятать её за регистрацией значит терять людей на пороге.
   const session = await auth();
-  if (!session?.user) redirect("/login?next=/backlog");
 
   const [{ budget: budgetKey }, { locale }] = await Promise.all([searchParams, params]);
   const t = await getTranslations("backlog");
@@ -32,14 +33,22 @@ export default async function BacklogPage({
 
   const budget = budgetMinutes(budgetKey ?? "") ?? null;
 
-  const [stats, fitting, donate, footer] = await Promise.all([
+  const [statsRaw, fitting, donate, footer] = await Promise.all([
     getBacklogStats(),
     budget ? getFitting(locale, budget) : Promise.resolve(null),
     visitorCountry().then(pickDonateLink),
     getTranslations("footer"),
   ]);
 
-  if (!stats) redirect("/login?next=/backlog");
+  // У гостя без куки статистики нет — покажем пустое состояние с призывом.
+  const stats = statsRaw ?? {
+    plannedMinutes: 0,
+    plannedCount: 0,
+    watchingMinutes: 0,
+    watchingCount: 0,
+    completedMinutes: 0,
+    completedCount: 0,
+  };
 
   const totalAhead = stats.plannedMinutes + stats.watchingMinutes;
 
@@ -56,6 +65,11 @@ export default async function BacklogPage({
         >
           {wrapped("menu")} →
         </Link>
+
+        {/* Гостю с непустым списком напоминаем, что список стоит сохранить. */}
+        {!session?.user && totalAhead + stats.completedCount > 0 && (
+          <GuestBanner next="/backlog" />
+        )}
 
         {totalAhead === 0 && stats.completedCount === 0 ? (
           <Empty text={t("emptyText")} cta={t("getTitles")} />

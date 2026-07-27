@@ -2,18 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getViewerId, getActorId } from "@/lib/guest";
 import type { CardTitle } from "@/lib/queries";
 import { pickTitle } from "@/lib/title-locale";
 
-/** Статус тайтла у текущего пользователя. null — если не в списке или гость. */
+/** Статус тайтла у текущего посетителя (гостя — тоже). null — не в списке. */
 export async function getEntry(titleId: number) {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const viewerId = await getViewerId();
+  if (!viewerId) return null;
 
   return prisma.watchlistEntry.findUnique({
-    where: { userId_titleId: { userId: session.user.id, titleId } },
+    where: { userId_titleId: { userId: viewerId, titleId } },
     select: { status: true, progress: true },
   });
 }
@@ -21,12 +21,10 @@ export async function getEntry(titleId: number) {
 /**
  * Добавляет тайтл в список или убирает, если он там уже есть.
  * Возвращает новое состояние, чтобы кнопка могла перерисоваться.
+ * Регистрации не требует: у гостя список заводится прямо в браузере.
  */
 export async function toggleWatchlist(titleId: number) {
-  const session = await auth();
-  if (!session?.user?.id) return { ok: false as const, reason: "unauthenticated" as const };
-
-  const userId = session.user.id;
+  const userId = await getActorId();
   const existing = await prisma.watchlistEntry.findUnique({
     where: { userId_titleId: { userId, titleId } },
   });
@@ -45,10 +43,7 @@ export async function toggleWatchlist(titleId: number) {
 
 /** Меняет статус (и заодно добавляет, если тайтла в списке ещё не было). */
 export async function setStatus(titleId: number, status: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { ok: false as const, reason: "unauthenticated" as const };
-
-  const userId = session.user.id;
+  const userId = await getActorId();
 
   await prisma.watchlistEntry.upsert({
     where: { userId_titleId: { userId, titleId } },
@@ -64,10 +59,7 @@ export async function setStatus(titleId: number, status: string) {
 
 /** Запоминает, на какой серии остановились. */
 export async function setProgress(titleId: number, progress: number) {
-  const session = await auth();
-  if (!session?.user?.id) return { ok: false as const, reason: "unauthenticated" as const };
-
-  const userId = session.user.id;
+  const userId = await getActorId();
 
   await prisma.watchlistEntry.upsert({
     where: { userId_titleId: { userId, titleId } },
@@ -80,15 +72,15 @@ export async function setProgress(titleId: number, progress: number) {
 }
 
 /**
- * Ряд «Продолжить просмотр» из макета — то, что пользователь смотрит сейчас,
- * свежее сверху. Для гостей пусто, и ряд просто не рендерится.
+ * Ряд «Продолжить просмотр» из макета — то, что посетитель смотрит сейчас,
+ * свежее сверху. Работает и для гостя с кукой; без куки пусто.
  */
 export async function getContinueWatching(locale: string, limit = 14): Promise<CardTitle[]> {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  const viewerId = await getViewerId();
+  if (!viewerId) return [];
 
   const entries = await prisma.watchlistEntry.findMany({
-    where: { userId: session.user.id, status: "watching" },
+    where: { userId: viewerId, status: "watching" },
     orderBy: { updatedAt: "desc" },
     take: limit,
     select: {
@@ -149,12 +141,12 @@ export interface NewEpisodeItem {
  * больше, чем отмечено у пользователя. Главная причина вернуться на сайт.
  */
 export async function getNewEpisodes(locale: string): Promise<NewEpisodeItem[]> {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  const viewerId = await getViewerId();
+  if (!viewerId) return [];
 
   const entries = await prisma.watchlistEntry.findMany({
     where: {
-      userId: session.user.id,
+      userId: viewerId,
       status: "watching",
       title: { episodesAired: { not: null } },
     },
@@ -200,12 +192,12 @@ export interface PlannedAiringItem {
  * Свежие старты первыми: «вышла 1 серия» — самый сильный повод начать.
  */
 export async function getPlannedAiring(locale: string): Promise<PlannedAiringItem[]> {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  const viewerId = await getViewerId();
+  if (!viewerId) return [];
 
   const entries = await prisma.watchlistEntry.findMany({
     where: {
-      userId: session.user.id,
+      userId: viewerId,
       status: "planned",
       title: { status: "releasing", episodesAired: { gt: 0 } },
     },
@@ -225,13 +217,13 @@ export async function getPlannedAiring(locale: string): Promise<PlannedAiringIte
     .sort((a, b) => a.aired - b.aired);
 }
 
-/** Весь список пользователя, сгруппированный по статусу — для страницы /my. */
+/** Весь список посетителя, сгруппированный по статусу — для страницы /my. */
 export async function getMyList(locale: string) {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const viewerId = await getViewerId();
+  if (!viewerId) return null;
 
   const entries = await prisma.watchlistEntry.findMany({
-    where: { userId: session.user.id },
+    where: { userId: viewerId },
     orderBy: { updatedAt: "desc" },
     select: { status: true, progress: true, title: { select: CARD_FIELDS } },
   });

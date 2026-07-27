@@ -13,20 +13,26 @@ function day(d: Date) {
 async function main() {
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  const [users, usersToday, entries, entriesToday, withProgress, feedback] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { createdAt: { gte: dayAgo } } }),
-    prisma.watchlistEntry.count(),
-    prisma.watchlistEntry.count({ where: { createdAt: { gte: dayAgo } } }),
-    prisma.watchlistEntry.count({ where: { progress: { gt: 0 } } }),
-    prisma.feedback.count(),
-  ]);
+  // Гости (безрегистрационные списки за кукой) — отдельная метрика:
+  // в «пользователях» они бы только замыливали картину.
+  const [users, usersToday, entries, entriesToday, withProgress, feedback, guests, guestsWithList] =
+    await Promise.all([
+      prisma.user.count({ where: { isGuest: false } }),
+      prisma.user.count({ where: { isGuest: false, createdAt: { gte: dayAgo } } }),
+      prisma.watchlistEntry.count(),
+      prisma.watchlistEntry.count({ where: { createdAt: { gte: dayAgo } } }),
+      prisma.watchlistEntry.count({ where: { progress: { gt: 0 } } }),
+      prisma.feedback.count(),
+      prisma.user.count({ where: { isGuest: true } }),
+      prisma.user.count({ where: { isGuest: true, watchlist: { some: {} } } }),
+    ]);
 
   const usersWithList = (await prisma.watchlistEntry.groupBy({ by: ["userId"] })).length;
 
   console.log("=== ПОЛЬЗОВАТЕЛИ ===");
   console.log(`всего: ${users} | за сутки: +${usersToday}`);
   console.log(`завели список (≥1 тайтл): ${usersWithList}`);
+  console.log(`гостей (без регистрации): ${guests}, из них со списком: ${guestsWithList}`);
 
   console.log("\n=== СПИСКИ ===");
   console.log(`записей: ${entries} | за сутки: +${entriesToday}`);
@@ -43,6 +49,7 @@ async function main() {
 
   // --- Возвраты: активность списка в дни после дня регистрации ---
   const all = await prisma.user.findMany({
+    where: { isGuest: false },
     select: {
       id: true,
       name: true,

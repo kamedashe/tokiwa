@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getViewerId } from "@/lib/guest";
 import { totalMinutes, FALLBACK_DURATION_MIN } from "@/lib/backlog";
 import { pickTitle } from "@/lib/title-locale";
 
@@ -23,11 +23,11 @@ export interface WrappedStats {
  * импортом целиком. Честнее считать всё накопленное.
  */
 export async function getWrappedStats(locale: string): Promise<WrappedStats | null> {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const viewerId = await getViewerId();
+  if (!viewerId) return null;
 
   const entries = await prisma.watchlistEntry.findMany({
-    where: { userId: session.user.id },
+    where: { userId: viewerId },
     select: {
       status: true,
       progress: true,

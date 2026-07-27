@@ -3,6 +3,7 @@ import Discord from "next-auth/providers/discord";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { mergeGuestIntoUser } from "@/lib/guest";
 
 /**
  * Auth.js v5. Два провайдера: Discord (попадание в аудиторию) и Google
@@ -32,6 +33,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/login",
     error: "/login",
+  },
+
+  events: {
+    /**
+     * Гостевой список переезжает в аккаунт при входе. Ошибка слияния не
+     * должна ломать сам вход — список останется за кукой до следующего раза.
+     */
+    async signIn({ user }) {
+      if (!user.id) return;
+      try {
+        await mergeGuestIntoUser(user.id);
+      } catch (error) {
+        console.error("merge guest:", error);
+      }
+    },
   },
 
   callbacks: {

@@ -1,11 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
+import { GuestBanner } from "@/components/guest-banner";
 import { FeedbackNudge } from "@/components/feedback-nudge";
 import { TelegramConnect } from "@/components/telegram-connect";
 import { getMyList, getNewEpisodes, getPlannedAiring } from "@/lib/watchlist";
@@ -25,24 +25,30 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
   const c = await getTranslations("catalog");
   const f = await getTranslations("feedback");
   const time = await getTranslations("time");
-  const grouped = await getMyList(locale);
-  if (!grouped) redirect("/login?next=/my");
+
+  // Гость без куки увидит пустое состояние — раньше тут была стена логина.
+  const grouped = (await getMyList(locale)) ?? {
+    watching: [],
+    completed: [],
+    planned: [],
+    dropped: [],
+  };
+
+  const session = await auth();
 
   const [newEpisodes, plannedAiring] = await Promise.all([
     getNewEpisodes(locale),
     getPlannedAiring(locale),
   ]);
 
-  // Блок подключения бота появляется, только когда бот вообще настроен.
+  // Блок подключения бота — только настоящим аккаунтам: гостю уведомления
+  // в Telegram не привяжешь, сначала пусть сохранит список.
   let telegramLinked: boolean | null = null;
-  if (telegramBotUsername()) {
-    const session = await auth();
-    const link = session?.user?.id
-      ? await prisma.telegramLink.findUnique({
-          where: { userId: session.user.id },
-          select: { chatId: true },
-        })
-      : null;
+  if (telegramBotUsername() && session?.user?.id) {
+    const link = await prisma.telegramLink.findUnique({
+      where: { userId: session.user.id },
+      select: { chatId: true },
+    });
     telegramLinked = Boolean(link?.chatId);
   }
 
@@ -103,6 +109,9 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
             {c("titlesCount", { count: total })}
           </span>
         </div>
+
+        {/* Гость с непустым списком — самое время предложить его сохранить. */}
+        {!session?.user && <GuestBanner next="/my" />}
 
         {/* Причины возвращаться: у «смотрю» вышли новые серии, а из
             «запланировано» что-то уже начало выходить. */}

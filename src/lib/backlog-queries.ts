@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getViewerId } from "@/lib/guest";
 import { remainingMinutes, totalMinutes } from "@/lib/backlog";
 import type { CardTitle } from "@/lib/queries";
 import { pickTitle } from "@/lib/title-locale";
@@ -72,11 +72,11 @@ export interface BacklogStats {
 
 /** Сводка по времени: сколько уже потрачено и сколько ещё предстоит. */
 export async function getBacklogStats(): Promise<BacklogStats | null> {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const viewerId = await getViewerId();
+  if (!viewerId) return null;
 
   const entries = await prisma.watchlistEntry.findMany({
-    where: { userId: session.user.id, status: { in: ["planned", "watching", "completed"] } },
+    where: { userId: viewerId, status: { in: ["planned", "watching", "completed"] } },
     select: { status: true, progress: true, title: { select: TITLE_FIELDS } },
   });
 
@@ -115,11 +115,11 @@ export async function getFitting(locale: string, budget: number): Promise<{
   fits: BacklogItem[];
   tooLong: BacklogItem[];
 }> {
-  const session = await auth();
-  if (!session?.user?.id) return { fits: [], tooLong: [] };
+  const viewerId = await getViewerId();
+  if (!viewerId) return { fits: [], tooLong: [] };
 
   const entries = await prisma.watchlistEntry.findMany({
-    where: { userId: session.user.id, status: { in: ["planned", "watching"] } },
+    where: { userId: viewerId, status: { in: ["planned", "watching"] } },
     select: { status: true, progress: true, title: { select: TITLE_FIELDS } },
   });
 
