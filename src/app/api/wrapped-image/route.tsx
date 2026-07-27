@@ -14,6 +14,11 @@ import { getWrappedStats } from "@/lib/wrapped-queries";
  */
 export const runtime = "nodejs";
 
+// По умолчанию функции живут 10 секунд, а холодный старт с Prisma, двумя
+// шрифтами и отрисовкой 1080×1920 в это окно не влезает — запрос убивался
+// на полпути, и кнопка «не работала».
+export const maxDuration = 60;
+
 const WIDTH = 1080;
 const HEIGHT = 1920;
 
@@ -33,14 +38,38 @@ export async function GET(request: Request) {
     return new Response("Нет данных", { status: 404 });
   }
 
-  const t = await getTranslations({ locale, namespace: "wrapped" });
+  try {
+    const t = await getTranslations({ locale, namespace: "wrapped" });
 
-  // Адрес берём из самого запроса: локально это localhost, в проде — домен.
-  const [medium, extraBold] = await Promise.all([
-    fetch(new URL("/fonts/Manrope-Medium.ttf", request.url)).then((r) => r.arrayBuffer()),
-    fetch(new URL("/fonts/Manrope-ExtraBold.ttf", request.url)).then((r) => r.arrayBuffer()),
-  ]);
+    // Адрес берём из самого запроса: локально это localhost, в проде — домен.
+    const [medium, extraBold] = await Promise.all([
+      fetchFont(new URL("/fonts/Manrope-Medium.ttf", request.url)),
+      fetchFont(new URL("/fonts/Manrope-ExtraBold.ttf", request.url)),
+    ]);
 
+    return renderImage(stats, t, { medium, extraBold });
+  } catch (error) {
+    // В лог — целиком, наружу — коротко: клиент покажет своё сообщение.
+    console.error("wrapped-image:", error);
+    return new Response("Не собралось", { status: 500 });
+  }
+}
+
+/** Битый шрифт роняет рендерер глубоко внутри — проверяем ответ сразу. */
+async function fetchFont(url: URL): Promise<ArrayBuffer> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`шрифт ${url.pathname}: HTTP ${res.status}`);
+  return res.arrayBuffer();
+}
+
+type Translate = Awaited<ReturnType<typeof getTranslations<"wrapped">>>;
+type Stats = NonNullable<Awaited<ReturnType<typeof getWrappedStats>>>;
+
+function renderImage(
+  stats: Stats,
+  t: Translate,
+  fonts: { medium: ArrayBuffer; extraBold: ArrayBuffer },
+) {
   const hours = Math.round(stats.watchedMinutes / 60);
   const days = Math.round(stats.watchedMinutes / 60 / 24);
 
@@ -112,8 +141,8 @@ export async function GET(request: Request) {
       width: WIDTH,
       height: HEIGHT,
       fonts: [
-        { name: "Manrope", data: medium, weight: 500, style: "normal" },
-        { name: "Manrope", data: extraBold, weight: 800, style: "normal" },
+        { name: "Manrope", data: fonts.medium, weight: 500, style: "normal" },
+        { name: "Manrope", data: fonts.extraBold, weight: 800, style: "normal" },
       ],
     },
   );
