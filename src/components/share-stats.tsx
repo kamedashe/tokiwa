@@ -59,7 +59,12 @@ export function ShareStats({
       const blob = await res.blob();
       const file = new File([blob], "tokiwa.png", { type: "image/png" });
 
-      if (navigator.canShare?.({ files: [file] })) {
+      // Системную шторку шаринга — только тач-устройствам: на телефоне в ней
+      // Telegram и Instagram, а на десктопной Windows — Paint и Outlook.
+      // На компьютере полезнее сразу скачать файл.
+      const touchDevice = window.matchMedia("(pointer: coarse)").matches;
+
+      if (touchDevice && navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({ files: [file], text });
           return;
