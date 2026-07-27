@@ -27,6 +27,7 @@ const CHANNELS: { name: string; url: string; tagKey: TagKey }[] = [
   { name: "Anime Fan / Аниме клипы", url: "https://t.me/animefan_clips", tagKey: "edits" },
   { name: "Loy | Аниме Эдиты", url: "https://t.me/Loy_Anime_Edits", tagKey: "edits" },
   { name: "HuB Otaku", url: "https://t.me/+fJnZOvlu7EMwMmYy", tagKey: "manga" },
+  { name: "AnimeRu — аниме в телеграме", url: "https://t.me/SmotretAnimeRu", tagKey: "picks" },
 ];
 
 /**
