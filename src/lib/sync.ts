@@ -111,6 +111,12 @@ async function persistTitle(n: NormalizedTitle) {
     },
     update: {
       ...data,
+      // Пустое у источника значит «нечего добавить», а не «сотри, что было»:
+      // у Shikimori нет баннеров и часто нет обложки, и обновление оттуда
+      // выбивало картинки, добытые из AniList. Так карточки и опустели.
+      posterUrl: n.posterUrl ?? undefined,
+      bannerUrl: n.bannerUrl ?? undefined,
+      synopsis: n.synopsis ?? undefined,
       genres: { set: genres.map((g) => ({ id: g.id })) },
     },
   });
