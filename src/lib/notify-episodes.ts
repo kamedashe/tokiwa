@@ -94,12 +94,12 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
     if (ok) {
       chatId ? tg++ : mail++;
       // Отметки — только после успешной отправки, иначе уведомление потеряется.
+      // Сырой SQL, а не update: Prisma при update освежает updatedAt, а на нём
+      // строится статистика возвратов — системная отметка не «визит».
       await Promise.all(
-        fresh.map((e) =>
-          prisma.watchlistEntry.update({
-            where: { id: e.id },
-            data: { notifiedEpisode: e.aired },
-          }),
+        fresh.map(
+          (e) =>
+            prisma.$executeRaw`UPDATE "WatchlistEntry" SET "notifiedEpisode" = ${e.aired} WHERE "id" = ${e.id}`,
         ),
       );
       // Пауза под лимит Resend (2 письма/сек) — телеграму она не мешает.
