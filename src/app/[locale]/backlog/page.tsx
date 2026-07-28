@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { localeAlternates } from "@/lib/seo";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -12,6 +14,24 @@ import { pickDonateLink } from "@/lib/donate";
 import { visitorCountry } from "@/lib/geo";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Страница индексируется: с гостевым режимом считалка работает без входа,
+ * и запросы «сколько времени займёт посмотреть …» должны вести сюда.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "backlog" });
+  return {
+    title: t("title"),
+    description: t("intro"),
+    alternates: { languages: localeAlternates("/backlog") },
+  };
+}
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 

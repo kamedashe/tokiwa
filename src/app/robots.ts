@@ -2,9 +2,13 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 
 /**
- * /my, /backlog, /login, /feedback закрываем на всех языках сразу — «*» в
- * начале паттерна ловит и голый путь («/my»), и с языковым префиксом
- * («/uk/my»), поскольку по robots.txt это не анкорится к началу адреса.
+ * Личные страницы закрываем на всех языках сразу — «*» в начале паттерна
+ * ловит и голый путь («/my»), и с языковым префиксом («/uk/my»), поскольку
+ * по robots.txt это не анкорится к началу адреса.
+ *
+ * /backlog НЕ закрыт: с гостевым режимом это витрина главной фичи — считать
+ * можно без входа, и запросы «сколько времени займёт посмотреть …» должны
+ * приводить именно сюда.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -15,7 +19,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/api/",
         "*/my",
-        "*/backlog",
         "*/login",
         "*/feedback",
         "*/wrapped",
