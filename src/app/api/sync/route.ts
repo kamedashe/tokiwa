@@ -60,12 +60,13 @@ async function run(request: Request) {
       const result = await syncRelated({ seeds: 10, limit: 20 });
 
       // Остаток бюджета — онгоингам: вместе со вторым кроном выходит два
-      // освежения серий в сутки.
-      const left = maxDuration * 1000 - (Date.now() - startedAt) - 12_000;
+      // освежения серий в сутки. Уведомлениям — 20 секунд: в день выхода
+      // популярной серии получателей десятки, по ~секунде на письмо.
+      const left = maxDuration * 1000 - (Date.now() - startedAt) - 24_000;
       const ongoing = left > 5_000 ? await syncOngoingEpisodes({ budgetMs: left }) : null;
 
       // После свежих данных о сериях — уведомления: Telegram или почта.
-      const notified = await notifyNewEpisodes({ budgetMs: 8_000 });
+      const notified = await notifyNewEpisodes({ budgetMs: 20_000 });
 
       await markHomepagePicks();
       return NextResponse.json({
@@ -95,9 +96,9 @@ async function run(request: Request) {
     // Затем Shikimori — он предсказуемо быстрый и гарантированно что-то
     // добавит. Jikan нужен только ради свежего сезона, но то отвечает бодро,
     // то уходит в ретраи — ему достаётся остаток бюджета.
-    const ongoing = await syncOngoingEpisodes({ budgetMs: 20_000 });
-    const notified = await notifyNewEpisodes({ budgetMs: 8_000 });
-    const shikimori = await syncCatalogFromShikimoriCron({ budgetMs: 12_000 });
+    const ongoing = await syncOngoingEpisodes({ budgetMs: 16_000 });
+    const notified = await notifyNewEpisodes({ budgetMs: 20_000 });
+    const shikimori = await syncCatalogFromShikimoriCron({ budgetMs: 8_000 });
 
     const left = maxDuration * 1000 - (Date.now() - startedAt) - 5_000;
     const synced = left > 5_000 ? await syncCatalog({ pages, budgetMs: left }) : 0;

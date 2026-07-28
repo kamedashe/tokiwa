@@ -347,6 +347,30 @@ export async function syncOngoingEpisodes({
 
   let updated = 0;
 
+  // Вне очереди — тайтлы, у которых дата следующей серии уже настала:
+  // серия, скорее всего, вышла, и именно её ждут уведомления. После
+  // обновления Shikimori отдаст новую дату, и тайтл сам выпадет из выборки,
+  // так что подмешивание не зацикливается.
+  const due = await prisma.title.findMany({
+    where: { status: "releasing", malId: { not: null }, nextEpisodeAt: { lte: new Date() } },
+    orderBy: { nextEpisodeAt: "asc" },
+    take: 15,
+    select: { id: true, malId: true },
+  });
+
+  for (const t of due) {
+    if (Date.now() > deadline) break;
+    try {
+      const saved = await upsertFromShikimori(t.malId!);
+      if (saved) {
+        updated++;
+        onProgress?.(`  ⏰ ${saved.titleRu ?? saved.title}`);
+      }
+    } catch {
+      // Один упавший тайтл не должен останавливать обход.
+    }
+  }
+
   for (;;) {
     if (Date.now() > deadline) break;
 

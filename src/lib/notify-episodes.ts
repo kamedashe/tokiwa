@@ -34,62 +34,67 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
 
   const deadline = Date.now() + budgetMs;
 
-  // Только настоящие аккаунты со «смотрю»: гостям слать некуда — почты нет.
-  const users = await prisma.user.findMany({
-    where: { isGuest: false, watchlist: { some: { status: "watching" } } },
+  // Один проход по всем «смотрю»-записям разом: раньше был запрос на каждого
+  // пользователя, и в день выхода популярной серии бюджет сгорал на сканах,
+  // не дойдя до отправки. Записей со статусом «смотрю» — сотни, это дёшево.
+  const entries = await prisma.watchlistEntry.findMany({
+    where: {
+      status: "watching",
+      title: { episodesAired: { not: null } },
+      // Гостям слать некуда — почты нет; их пропускаем ещё в запросе.
+      user: { isGuest: false },
+    },
     select: {
       id: true,
-      email: true,
-      emailNotifications: true,
-      telegramLink: { select: { chatId: true } },
+      progress: true,
+      notifiedEpisode: true,
+      userId: true,
+      title: {
+        select: { slug: true, title: true, titleRu: true, episodesAired: true, durationMin: true },
+      },
+      user: {
+        select: {
+          email: true,
+          emailNotifications: true,
+          telegramLink: { select: { chatId: true } },
+        },
+      },
     },
   });
+
+  // Группируем свежие серии по получателям.
+  const byUser = new Map<
+    string,
+    { chatId: bigint | null; email: string | null; fresh: FreshEntry[] }
+  >();
+
+  for (const e of entries) {
+    const aired = e.title.episodesAired!;
+    if (aired <= e.progress || aired <= e.notifiedEpisode) continue;
+
+    const chatId = e.user.telegramLink?.chatId ?? null;
+    const canMail = emailEnabled() && e.user.emailNotifications && Boolean(e.user.email);
+    if (!chatId && !canMail) continue;
+
+    const box = byUser.get(e.userId) ?? { chatId, email: e.user.email, fresh: [] };
+    box.fresh.push({
+      id: e.id,
+      progress: e.progress,
+      slug: e.title.slug,
+      name: e.title.titleRu ?? e.title.title,
+      aired,
+      durationMin: e.title.durationMin,
+    });
+    byUser.set(e.userId, box);
+  }
 
   let tg = 0;
   let mail = 0;
 
-  for (const user of users) {
+  for (const [userId, { chatId, email, fresh }] of byUser) {
     if (Date.now() > deadline) break;
 
-    const chatId = user.telegramLink?.chatId ?? null;
-    const canMail = emailEnabled() && user.emailNotifications && Boolean(user.email);
-    if (!chatId && !canMail) continue;
-
-    const entries = await prisma.watchlistEntry.findMany({
-      where: {
-        userId: user.id,
-        status: "watching",
-        title: { episodesAired: { not: null } },
-      },
-      select: {
-        id: true,
-        progress: true,
-        notifiedEpisode: true,
-        title: {
-          select: { slug: true, title: true, titleRu: true, episodesAired: true, durationMin: true },
-        },
-      },
-    });
-
-    const fresh: FreshEntry[] = entries
-      .filter((e) => {
-        const aired = e.title.episodesAired!;
-        return aired > e.progress && aired > e.notifiedEpisode;
-      })
-      .map((e) => ({
-        id: e.id,
-        progress: e.progress,
-        slug: e.title.slug,
-        name: e.title.titleRu ?? e.title.title,
-        aired: e.title.episodesAired!,
-        durationMin: e.title.durationMin,
-      }));
-
-    if (fresh.length === 0) continue;
-
-    const ok = chatId
-      ? await sendTelegram(chatId, fresh)
-      : await sendMail(user.id, user.email!, fresh);
+    const ok = chatId ? await sendTelegram(chatId, fresh) : await sendMail(userId, email!, fresh);
 
     if (ok) {
       chatId ? tg++ : mail++;
