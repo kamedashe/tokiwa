@@ -118,6 +118,33 @@ function sendTelegram(chatId: bigint, fresh: FreshEntry[]): Promise<boolean> {
   return sendTelegramMessage(chatId, `🔔 <b>Вышли новые серии</b>\n\n${lines.join("\n")}`);
 }
 
+/**
+ * Тестовое письмо с демо-данными — проверить вёрстку и доставку, не дожидаясь
+ * настоящих серий. Дёргается ручкой /api/test-email за секретом синков.
+ */
+export async function sendTestEpisodeMail(to: string): Promise<boolean> {
+  const user = await prisma.user.findFirst({ where: { email: to }, select: { id: true } });
+
+  return sendMail(user?.id ?? "test", to, [
+    {
+      id: "demo-1",
+      progress: 5,
+      slug: "frieren-beyond-journey-s-end",
+      name: "Провожающая в последний путь Фрирен",
+      aired: 7,
+      durationMin: 24,
+    },
+    {
+      id: "demo-2",
+      progress: 1,
+      slug: "one-piece",
+      name: "Ван-Пис",
+      aired: 3,
+      durationMin: 24,
+    },
+  ]);
+}
+
 function sendMail(userId: string, email: string, fresh: FreshEntry[]): Promise<boolean> {
   const unsub = unsubscribeUrl(userId);
 
