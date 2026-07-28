@@ -131,6 +131,9 @@ model User {
   /// строка удаляется. В продуктовой статистике такие не считаются.
   isGuest Boolean @default(false)
 
+  /// Письма «вышли новые серии». Выключается ссылкой-отпиской из письма.
+  emailNotifications Boolean @default(true)
+
   accounts     Account[]
   sessions     Session[]
   watchlist    WatchlistEntry[]

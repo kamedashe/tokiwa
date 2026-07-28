@@ -6,7 +6,7 @@ import {
   syncOngoingEpisodes,
   syncRelated,
 } from "@/lib/sync";
-import { notifyNewEpisodes } from "@/lib/telegram-notify";
+import { notifyNewEpisodes } from "@/lib/notify-episodes";
 
 // Прогон ходит во внешние API и упирается в их задержки. 60 секунд — потолок
 // бесплатного тарифа Vercel; проходы инкрементальные и в него укладываются.
@@ -64,7 +64,7 @@ async function run(request: Request) {
       const left = maxDuration * 1000 - (Date.now() - startedAt) - 12_000;
       const ongoing = left > 5_000 ? await syncOngoingEpisodes({ budgetMs: left }) : null;
 
-      // После свежих данных о сериях — уведомления подписанным в Telegram.
+      // После свежих данных о сериях — уведомления: Telegram или почта.
       const notified = await notifyNewEpisodes({ budgetMs: 8_000 });
 
       await markHomepagePicks();
@@ -73,7 +73,8 @@ async function run(request: Request) {
         mode,
         ...result,
         ongoingUpdated: ongoing?.updated ?? 0,
-        notified: notified.sent,
+        notifiedTg: notified.tg ?? 0,
+        notifiedMail: notified.mail ?? 0,
       });
     }
 
@@ -108,7 +109,8 @@ async function run(request: Request) {
       mode: "catalog",
       synced,
       ongoingUpdated: ongoing.updated,
-      notified: notified.sent,
+      notifiedTg: notified.tg ?? 0,
+      notifiedMail: notified.mail ?? 0,
       shikimoriAdded: shikimori.added,
       nextPage: shikimori.nextPage,
     });
