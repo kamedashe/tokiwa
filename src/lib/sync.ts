@@ -7,7 +7,7 @@ import {
   normalize,
   type JikanAnime,
 } from "@/lib/jikan";
-import { fetchArt, fetchRelatedIdsViaAniList } from "@/lib/anilist";
+import { fetchArt, fetchArtBatch, fetchRelatedIdsViaAniList } from "@/lib/anilist";
 import { fetchAnimeDetails, fetchPopularAnimeIds, fetchRussianTitle } from "@/lib/shikimori";
 import { hueFrom, slugify } from "@/lib/slug";
 
@@ -325,6 +325,80 @@ export async function syncCatalogFromShikimoriCron({
   });
 
   return { checked, added, pagesDone, nextPage: page };
+}
+
+const POSTER_CURSOR_KEY = "posterUpgrade";
+
+/**
+ * Подтягивает обложки до AniList-качества: у Shikimori постер 225px, и на
+ * странице тайтла он заметно мылит, а extraLarge у AniList — вдвое крупнее.
+ * Заодно подбирает баннер, которого у Shikimori нет вовсе.
+ *
+ * Обход по курсору пачками по 50 в одном запросе: поштучно 14 тысяч тайтлов
+ * упёрлись бы в лимит AniList на месяцы. Тайтлы, которых AniList не знает,
+ * помечаем прошедшими — иначе курсор встанет на них при каждом прогоне.
+ */
+export async function upgradePosters({ budgetMs = 20_000 }: { budgetMs?: number } = {}) {
+  const deadline = Date.now() + budgetMs;
+
+  const cursor = await prisma.syncState.findUnique({ where: { key: POSTER_CURSOR_KEY } });
+  let lastId = cursor?.value ?? 0;
+
+  let upgraded = 0;
+  let seen = 0;
+
+  while (Date.now() < deadline) {
+    const batch = await prisma.title.findMany({
+      where: {
+        id: { gt: lastId },
+        malId: { not: null },
+        // Только шикиморевские: то, что уже с AniList, апгрейдить незачем.
+        posterUrl: { contains: "shikimori" },
+      },
+      orderBy: { id: "asc" },
+      take: 50,
+      select: { id: true, malId: true },
+    });
+
+    if (batch.length === 0) {
+      lastId = 0; // круг пройден — следующий заход начнёт сначала
+      break;
+    }
+
+    const art = await fetchArtBatch(batch.map((t) => t.malId!));
+    seen += batch.length;
+
+    // Пачкой же и пишем: по одному апдейту за раз пачка занимала семь секунд
+    // вместо двух, и за прогон проходила вчетверо меньшая часть каталога.
+    const writes = batch.flatMap((t) => {
+      const found = art.get(t.malId!);
+      if (!found?.coverUrl) return [];
+
+      return [
+        prisma.title.update({
+          where: { id: t.id },
+          data: {
+            posterUrl: found.coverUrl,
+            ...(found.bannerUrl ? { bannerUrl: found.bannerUrl } : {}),
+            ...(found.anilistId ? { anilistId: found.anilistId } : {}),
+          },
+        }),
+      ];
+    });
+
+    await Promise.all(writes);
+    upgraded += writes.length;
+
+    lastId = batch[batch.length - 1].id;
+  }
+
+  await prisma.syncState.upsert({
+    where: { key: POSTER_CURSOR_KEY },
+    create: { key: POSTER_CURSOR_KEY, value: lastId },
+    update: { value: lastId },
+  });
+
+  return { upgraded, seen, cursor: lastId };
 }
 
 const ONGOING_CURSOR_KEY = "ongoingScan";

@@ -5,6 +5,7 @@ import {
   syncCatalogFromShikimoriCron,
   syncOngoingEpisodes,
   syncRelated,
+  upgradePosters,
 } from "@/lib/sync";
 import { notifyNewEpisodes } from "@/lib/notify-episodes";
 
@@ -68,6 +69,13 @@ async function run(request: Request) {
       // После свежих данных о сериях — уведомления: Telegram или почта.
       const notified = await notifyNewEpisodes({ budgetMs: 20_000 });
 
+      // Остатком добираем обложки: связи в каталоге почти достроены, и этот
+      // прогон всё равно простаивает. Третий крон завести нельзя — на
+      // бесплатном тарифе их всего два, оба заняты.
+      const posterBudget = maxDuration * 1000 - (Date.now() - startedAt) - 5_000;
+      const posters =
+        posterBudget > 5_000 ? await upgradePosters({ budgetMs: posterBudget }) : null;
+
       await markHomepagePicks();
       return NextResponse.json({
         ok: true,
@@ -76,6 +84,8 @@ async function run(request: Request) {
         ongoingUpdated: ongoing?.updated ?? 0,
         notifiedTg: notified.tg ?? 0,
         notifiedMail: notified.mail ?? 0,
+        postersUpgraded: posters?.upgraded ?? 0,
+        posterCursor: posters?.cursor ?? null,
       });
     }
 
@@ -88,6 +98,12 @@ async function run(request: Request) {
     // Точечное обновление онгоингов — для ручных прогонов.
     if (mode === "ongoing") {
       const result = await syncOngoingEpisodes({ budgetMs: 50_000 });
+      return NextResponse.json({ ok: true, mode, ...result });
+    }
+
+    // Только обложки — чтобы разогнать апгрейд вручную, не дожидаясь крона.
+    if (mode === "posters") {
+      const result = await upgradePosters({ budgetMs: 50_000 });
       return NextResponse.json({ ok: true, mode, ...result });
     }
 

@@ -28,6 +28,23 @@ const QUERY = `
   }
 `;
 
+/**
+ * Пачкой — до 50 тайтлов за запрос. Поштучно апгрейд обложек всего каталога
+ * растянулся бы на месяцы: лимит AniList считает запросы, а не тайтлы в них.
+ */
+const BATCH_QUERY = `
+  query ($ids: [Int]) {
+    Page(perPage: 50) {
+      media(idMal_in: $ids, type: ANIME) {
+        id
+        idMal
+        bannerImage
+        coverImage { extraLarge }
+      }
+    }
+  }
+`;
+
 const RELATIONS_QUERY = `
   query ($idMal: Int) {
     Media(idMal: $idMal, type: ANIME) {
@@ -137,4 +154,65 @@ export async function fetchArt(malId: number, attempt = 1): Promise<AniListArt |
     bannerUrl: media.bannerImage ?? null,
     coverUrl: media.coverImage?.extraLarge ?? null,
   };
+}
+
+/**
+ * То же, но пачкой: ключ результата — malId. Тайтлы, которых AniList не знает,
+ * в ответе просто отсутствуют. Больше 50 за раз их API не отдаёт.
+ */
+export async function fetchArtBatch(
+  malIds: number[],
+  attempt = 1,
+): Promise<Map<number, AniListArt>> {
+  const MAX_ATTEMPTS = 3;
+  const result = new Map<number, AniListArt>();
+  if (malIds.length === 0) return result;
+
+  await throttle();
+
+  let res: Response;
+  try {
+    res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ query: BATCH_QUERY, variables: { ids: malIds.slice(0, 50) } }),
+      signal: AbortSignal.timeout(20_000),
+    });
+  } catch {
+    if (attempt >= MAX_ATTEMPTS) return result;
+    await new Promise((r) => setTimeout(r, attempt * 1500));
+    return fetchArtBatch(malIds, attempt + 1);
+  }
+
+  if (res.status === 429 && attempt < MAX_ATTEMPTS) {
+    const retryAfter = Number(res.headers.get("retry-after") ?? 5);
+    await new Promise((r) => setTimeout(r, (retryAfter + 1) * 1000));
+    return fetchArtBatch(malIds, attempt + 1);
+  }
+
+  if (!res.ok) return result;
+
+  const data = (await res.json()) as {
+    data?: {
+      Page?: {
+        media?: {
+          id: number;
+          idMal: number | null;
+          bannerImage: string | null;
+          coverImage?: { extraLarge: string | null };
+        }[];
+      };
+    };
+  };
+
+  for (const m of data?.data?.Page?.media ?? []) {
+    if (!m.idMal) continue;
+    result.set(m.idMal, {
+      anilistId: m.id ?? null,
+      bannerUrl: m.bannerImage ?? null,
+      coverUrl: m.coverImage?.extraLarge ?? null,
+    });
+  }
+
+  return result;
 }
