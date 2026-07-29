@@ -40,7 +40,13 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
   const entries = await prisma.watchlistEntry.findMany({
     where: {
       status: "watching",
-      title: { episodesAired: { not: null } },
+      title: {
+        episodesAired: { not: null },
+        // Только выходящие. Иначе, когда синк впервые проставит число серий
+        // давно законченному тайтлу, это выглядит как «вышла новая серия»:
+        // 28.07.2026 люди получили письма про 366-ю серию Блича.
+        status: "releasing",
+      },
       // Гостям слать некуда — почты нет; их пропускаем ещё в запросе.
       user: { isGuest: false },
     },
