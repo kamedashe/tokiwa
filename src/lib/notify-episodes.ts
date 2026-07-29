@@ -156,6 +156,15 @@ export async function sendTestEpisodeMail(to: string): Promise<boolean> {
   ]);
 }
 
+/**
+ * Метка перехода из письма. Без неё письма неотличимы от прямых заходов:
+ * почтовые клиенты referrer не передают, и вечерний всплеск трафика нельзя
+ * отделить от обычного вечернего пика.
+ */
+function tagged(path: string): string {
+  return `${SITE_URL}${path}?utm_source=email&utm_medium=notification&utm_campaign=new-episodes`;
+}
+
 function sendMail(userId: string, email: string, fresh: FreshEntry[]): Promise<boolean> {
   const unsub = unsubscribeUrl(userId);
 
@@ -165,7 +174,7 @@ function sendMail(userId: string, email: string, fresh: FreshEntry[]): Promise<b
       const catchUp = behind * (e.durationMin ?? FALLBACK_DURATION_MIN);
       return `<tr>
 <td style="padding:10px 0;border-bottom:1px solid #26262e">
-  <a href="${SITE_URL}/anime/${e.slug}" style="color:#f3f3f6;font-weight:600;text-decoration:none">${escapeHtml(e.name)}</a>
+  <a href="${tagged(`/anime/${e.slug}`)}" style="color:#f3f3f6;font-weight:600;text-decoration:none">${escapeHtml(e.name)}</a>
   <div style="color:#9a9aa6;font-size:13px;margin-top:2px">
     серия ${e.aired} · вы на ${e.progress} · догнать ≈ ${catchUp} мин
   </div>
@@ -189,7 +198,7 @@ function sendMail(userId: string, email: string, fresh: FreshEntry[]): Promise<b
   <tr><td style="color:#ffb020;font-size:13px;letter-spacing:2px;padding:16px 0 4px">ВЫШЛИ НОВЫЕ СЕРИИ</td></tr>
   <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table></td></tr>
   <tr><td align="center" style="padding:24px 0">
-    <a href="${SITE_URL}/my" style="display:inline-block;background:#ffb020;color:#050506;font-weight:700;font-size:14px;text-decoration:none;padding:10px 24px;border-radius:999px">Открыть мой список</a>
+    <a href="${tagged("/my")}" style="display:inline-block;background:#ffb020;color:#050506;font-weight:700;font-size:14px;text-decoration:none;padding:10px 24px;border-radius:999px">Открыть мой список</a>
   </td></tr>
   <tr><td style="color:#5c5c66;font-size:12px;padding-top:8px;border-top:1px solid #26262e">
     Письмо пришло, потому что у тайтлов из вашего списка «смотрю» вышли серии.
