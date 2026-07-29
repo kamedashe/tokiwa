@@ -28,14 +28,20 @@ export async function upsertFromJikan(anime: JikanAnime, enrich = true) {
       ])
     : [null, null];
 
-  return persistTitle({
-    ...base,
-    titleRu,
-    anilistId: art?.anilistId ?? null,
-    // Обложка AniList заметно чётче, но если её нет — остаётся jikan'овская.
-    posterUrl: art?.coverUrl ?? base.posterUrl,
-    bannerUrl: art?.bannerUrl ?? base.bannerUrl,
-  });
+  return persistTitle(
+    {
+      ...base,
+      titleRu,
+      anilistId: art?.anilistId ?? null,
+      // Обложка AniList заметно чётче, но если её нет — остаётся jikan'овская.
+      posterUrl: art?.coverUrl ?? base.posterUrl,
+      bannerUrl: art?.bannerUrl ?? base.bannerUrl,
+    },
+    // Описания у Jikan английские, у Shikimori русские. Аудитория русская,
+    // поэтому уже сохранённый текст ночной добор топа не переписывает —
+    // иначе у самых популярных тайтлов описание к утру снова английское.
+    { keepSynopsis: true },
+  );
 }
 
 /** Форма тайтла, из которой можно писать в БД: общая для Jikan и Shikimori. */
@@ -63,7 +69,7 @@ interface NormalizedTitle {
 }
 
 /** Собственно запись в БД: жанры, уникальный слаг, upsert по malId. */
-async function persistTitle(n: NormalizedTitle) {
+async function persistTitle(n: NormalizedTitle, options: { keepSynopsis?: boolean } = {}) {
   const genres = await Promise.all(
     n.genreNames.map((name) =>
       prisma.genre.upsert({
@@ -116,7 +122,7 @@ async function persistTitle(n: NormalizedTitle) {
       // выбивало картинки, добытые из AniList. Так карточки и опустели.
       posterUrl: n.posterUrl ?? undefined,
       bannerUrl: n.bannerUrl ?? undefined,
-      synopsis: n.synopsis ?? undefined,
+      synopsis: options.keepSynopsis ? undefined : (n.synopsis ?? undefined),
       genres: { set: genres.map((g) => ({ id: g.id })) },
     },
   });
