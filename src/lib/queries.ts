@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { pickTitle } from "@/lib/title-locale";
+import type { Mood } from "@/lib/moods";
 
 export interface CardTitle {
   id: number;
@@ -193,6 +194,29 @@ export async function listTitles(
 ): Promise<CardTitle[]> {
   const rows = await prisma.title.findMany({
     where,
+    orderBy: [BY_SCORE, { id: "asc" }],
+    take,
+    select: CARD_SELECT,
+  });
+  return rows.map((r) => toCard(r, locale));
+}
+
+/**
+ * Подборка под настроение. Условие собирается из включающих и исключающих
+ * жанров — см. lib/moods.ts, там же объяснено, зачем нужны исключения.
+ */
+export async function listByMood(
+  mood: Mood,
+  locale: string,
+  take = 48,
+): Promise<CardTitle[]> {
+  const rows = await prisma.title.findMany({
+    where: {
+      genres: { some: { name: { in: mood.include } } },
+      NOT: { genres: { some: { name: { in: mood.exclude } } } },
+      score: { gte: mood.minScore },
+      posterUrl: { not: null },
+    },
     orderBy: [BY_SCORE, { id: "asc" }],
     take,
     select: CARD_SELECT,

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { routing } from "@/i18n/routing";
 import { listSeasons } from "@/lib/queries";
+import { MOODS } from "@/lib/moods";
 import { SITE_URL, localeAlternates } from "@/lib/seo";
 
 /**
@@ -54,6 +55,11 @@ async function staticShard(): Promise<MetadataRoute.Sitemap> {
     ...entriesFor("/seasons", { changeFrequency: "weekly", priority: 0.7 }),
     // Витрина главной фичи — с гостевым режимом работает без входа.
     ...entriesFor("/backlog", { changeFrequency: "monthly", priority: 0.6 }),
+    // Подборки по настроению отвечают на живые запросы вроде
+    // «аниме чтобы поплакать» — для поиска это отдельные посадочные.
+    ...MOODS.flatMap((m) =>
+      entriesFor(`/mood/${m.slug}`, { changeFrequency: "weekly", priority: 0.6 }),
+    ),
     ...entriesFor("/friends", { changeFrequency: "monthly", priority: 0.3 }),
     // /privacy не переведена на самом деле — все языковые версии показывают
     // один и тот же русский текст, поэтому hreflang для неё был бы обманом

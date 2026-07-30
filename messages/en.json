@@ -240,5 +240,34 @@
     "saveTitle": "Your list lives in this browser",
     "saveText": "An account adds what a cookie can't: new-episode notifications for your shows, your list on any device — and it survives clearing your history.",
     "saveCta": "Sign in to save"
+  },
+  "moods": {
+    "title": "By mood",
+    "intro": "Not by genre or length, but by how you feel today.",
+    "empty": "Nothing here yet — check back later.",
+    "light": {
+      "name": "Easy watch",
+      "tagline": "Nothing heavy, just nice"
+    },
+    "funny": {
+      "name": "Funny",
+      "tagline": "For a laugh"
+    },
+    "sad": {
+      "name": "Tearjerker",
+      "tagline": "When you need a good cry"
+    },
+    "romance": {
+      "name": "Romance",
+      "tagline": "Feelings and awkwardness"
+    },
+    "tense": {
+      "name": "On edge",
+      "tagline": "Keeps you to the last episode"
+    },
+    "mind": {
+      "name": "Makes you think",
+      "tagline": "Heavy — and it stays with you"
+    }
   }
 }
