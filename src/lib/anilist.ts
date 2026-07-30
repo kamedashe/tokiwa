@@ -72,7 +72,8 @@ const WANTED = new Set([
  * Связанные части через AniList — запасной путь, когда Jikan отдаёт 504.
  * Его ручка /relations регулярно лежит, а AniList работает стабильно.
  */
-export async function fetchRelatedIdsViaAniList(malId: number): Promise<number[]> {
+export async function fetchRelatedIdsViaAniList(malId: number, attempt = 1): Promise<number[]> {
+  const MAX_ATTEMPTS = 3;
   await throttle();
 
   let res: Response;
@@ -84,7 +85,17 @@ export async function fetchRelatedIdsViaAniList(malId: number): Promise<number[]
       signal: AbortSignal.timeout(15_000),
     });
   } catch {
-    return [];
+    if (attempt >= MAX_ATTEMPTS) return [];
+    await new Promise((r) => setTimeout(r, attempt * 1500));
+    return fetchRelatedIdsViaAniList(malId, attempt + 1);
+  }
+
+  // Упёрлись в лимит — именно здесь раньше терялись связи: пустой ответ
+  // означал «у тайтла нет франшизы», и тайтл больше не проверяли.
+  if (res.status === 429 && attempt < MAX_ATTEMPTS) {
+    const retryAfter = Number(res.headers.get("retry-after") ?? 5);
+    await new Promise((r) => setTimeout(r, (retryAfter + 1) * 1000));
+    return fetchRelatedIdsViaAniList(malId, attempt + 1);
   }
 
   if (!res.ok) return [];
