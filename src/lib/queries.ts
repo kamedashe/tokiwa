@@ -14,6 +14,13 @@ export interface CardTitle {
   tags: string;
   /** Строка-бейдж под названием («серия 12 — завтра») — есть не у всех рядов. */
   note?: string | null;
+  /**
+   * Прогресс по сериям — заполняется только там, где карточка показывает
+   * список самого посетителя. По его наличию карточка решает, рисовать ли
+   * кнопку «+1»: отмечать серии нужно в один клик, не заходя в тайтл.
+   */
+  progress?: number;
+  episodesCount?: number | null;
 }
 
 export interface HeroTitle extends CardTitle {

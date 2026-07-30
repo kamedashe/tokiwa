@@ -1,15 +1,19 @@
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Artwork } from "@/components/artwork";
+import { QuickProgress } from "@/components/quick-progress";
 import type { CardTitle } from "@/lib/queries";
 
 /** Карточка тайтла 2:3 — основа горизонтальных рядов на главной. */
-export function AnimeCard({ item, deg = 150 }: { item: CardTitle; deg?: number }) {
+export async function AnimeCard({ item, deg = 150 }: { item: CardTitle; deg?: number }) {
+  const t = await getTranslations("title");
+
   return (
     <Link
       href={`/anime/${item.slug}`}
       // Ширина фиксированная только в рядах со скроллом; в сетке карточка
       // растягивается по колонке, поэтому w-full и min-w-0.
-      className="group w-full min-w-0 shrink-0 snap-start focus:outline-none"
+      className="group relative w-full min-w-0 shrink-0 snap-start focus:outline-none"
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-[14px] border border-hairline bg-surface transition-transform duration-300 group-hover:-translate-y-1 group-focus-visible:ring-2 group-focus-visible:ring-accent">
         <Artwork
@@ -46,6 +50,17 @@ export function AnimeCard({ item, deg = 150 }: { item: CardTitle; deg?: number }
           )}
           <div className="text-[11px] tracking-[0.02em] text-muted-2">{item.tags}</div>
         </div>
+
+        {/* Прогресс есть только там, где карточка показывает список самого
+            посетителя — на главной в «Продолжить просмотр» и в «Смотрю». */}
+        {item.progress !== undefined && (
+          <QuickProgress
+            titleId={item.id}
+            progress={item.progress}
+            episodesCount={item.episodesCount ?? null}
+            label={t("addEpisode")}
+          />
+        )}
       </div>
     </Link>
   );

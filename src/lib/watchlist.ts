@@ -84,9 +84,11 @@ export async function getContinueWatching(locale: string, limit = 14): Promise<C
     orderBy: { updatedAt: "desc" },
     take: limit,
     select: {
+      progress: true,
       title: {
         select: {
           ...CARD_FIELDS,
+          episodesCount: true,
           status: true,
           episodesAired: true,
           nextEpisodeAt: true,
@@ -100,6 +102,10 @@ export async function getContinueWatching(locale: string, limit = 14): Promise<C
 
   return entries.map((e) => {
     const card = toCard(e.title, locale);
+
+    // Прогресс отдаём карточке — по нему она рисует «+1» и полосу.
+    card.progress = e.progress;
+    card.episodesCount = e.title.episodesCount;
 
     // Бейдж «серия N — завтра» только у онгоингов с известной датой.
     if (e.title.status === "releasing" && e.title.nextEpisodeAt) {
@@ -225,7 +231,11 @@ export async function getMyList(locale: string) {
   const entries = await prisma.watchlistEntry.findMany({
     where: { userId: viewerId },
     orderBy: { updatedAt: "desc" },
-    select: { status: true, progress: true, title: { select: CARD_FIELDS } },
+    select: {
+      status: true,
+      progress: true,
+      title: { select: { ...CARD_FIELDS, episodesCount: true } },
+    },
   });
 
   const grouped: Record<string, CardTitle[]> = {
@@ -236,7 +246,16 @@ export async function getMyList(locale: string) {
   };
 
   for (const e of entries) {
-    if (e.status in grouped) grouped[e.status].push(toCard(e.title, locale));
+    if (!(e.status in grouped)) continue;
+
+    const card = toCard(e.title, locale);
+    // «+1» — только у начатого: в «запланировано» и «просмотрено» этот жест
+    // ничего не значит, а кнопка на каждой карточке превратилась бы в шум.
+    if (e.status === "watching") {
+      card.progress = e.progress;
+      card.episodesCount = e.title.episodesCount;
+    }
+    grouped[e.status].push(card);
   }
 
   return grouped;
