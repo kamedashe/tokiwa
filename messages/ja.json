@@ -75,7 +75,9 @@
     "statusReleasing": "放送中",
     "statusFinished": "放送終了",
     "statusAnnounced": "放送予定",
-    "nextEpisode": "次の話 — {date}"
+    "nextEpisode": "次の話 — {date}",
+    "franchise": "シリーズ",
+    "similar": "似ている作品"
   },
   "status": {
     "watching": "見ている",

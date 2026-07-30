@@ -81,6 +81,60 @@ function toCard(t: CardRecord, locale: string): CardTitle {
   };
 }
 
+/**
+ * Что показать рядом с тайтлом: сначала своя франшиза, потом похожее.
+ *
+ * Франшиза — реальные связи из AniList/Jikan, но заполняются они кроном
+ * постепенно, поэтому у части каталога их пока нет. Чтобы блок не пустовал,
+ * добор идёт по жанрам: то же настроение, высокая оценка, тот же формат.
+ */
+export async function getNearby(
+  titleId: number,
+  locale: string,
+  limit = 12,
+): Promise<{ franchise: CardTitle[]; similar: CardTitle[] }> {
+  const title = await prisma.title.findUnique({
+    where: { id: titleId },
+    select: {
+      format: true,
+      genres: { select: { id: true } },
+      // Связь односторонняя, поэтому собираем обе стороны.
+      related: { select: CARD_SELECT },
+      relatedBy: { select: CARD_SELECT },
+    },
+  });
+  if (!title) return { franchise: [], similar: [] };
+
+  const seen = new Map<number, CardTitle>();
+  for (const t of [...title.related, ...title.relatedBy]) {
+    if (!seen.has(t.id)) seen.set(t.id, toCard(t, locale));
+  }
+  const franchise = [...seen.values()];
+
+  // Похожее ищем только если во франшизе не набралось на полный ряд.
+  const need = Math.max(0, limit - franchise.length);
+  if (need === 0) return { franchise, similar: [] };
+
+  const genreIds = title.genres.map((g) => g.id);
+  const similarRows =
+    genreIds.length === 0
+      ? []
+      : await prisma.title.findMany({
+          where: {
+            id: { not: titleId, notIn: franchise.map((f) => f.id) },
+            genres: { some: { id: { in: genreIds } } },
+            posterUrl: { not: null },
+            score: { not: null },
+            ...(title.format ? { format: title.format } : {}),
+          },
+          orderBy: { score: { sort: "desc", nulls: "last" } },
+          take: need,
+          select: CARD_SELECT,
+        });
+
+  return { franchise, similar: similarRows.map((r) => toCard(r, locale)) };
+}
+
 export const SEASON_KEYS = ["winter", "spring", "summer", "fall"] as const;
 
 /** «Лето 2026» на языке пользователя. Подписи сезонов лежат в словаре. */

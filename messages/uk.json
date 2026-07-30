@@ -75,7 +75,9 @@
     "statusReleasing": "Виходить",
     "statusFinished": "Завершено",
     "statusAnnounced": "Анонс",
-    "nextEpisode": "Наступна серія — {date}"
+    "nextEpisode": "Наступна серія — {date}",
+    "franchise": "Франшиза",
+    "similar": "Схоже"
   },
   "status": {
     "watching": "Дивлюся",

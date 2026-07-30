@@ -61,6 +61,12 @@ model Title {
   genres    Genre[]
   watchlist WatchlistEntry[]
 
+  /// Франшиза: сиквелы, приквелы, побочки и фильмы одного тайтла. Prisma
+  /// хранит такую связь односторонне, поэтому для показа «рядом» страница
+  /// собирает обе стороны — заносим только в related, читаем из обеих.
+  related   Title[] @relation("TitleRelations")
+  relatedBy Title[] @relation("TitleRelations")
+
   /// Когда последний раз тянули метаданные из Jikan — чтобы не дёргать API зря.
   syncedAt DateTime?
   /// Когда последний раз обходили связи. null — этот тайтл ещё не проверяли,

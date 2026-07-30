@@ -508,6 +508,25 @@ export async function syncOngoingEpisodes({
  * `limit` ограничивает число новых тайтлов за прогон: связи ветвятся, и без
  * потолка обход уходит гулять по половине MAL.
  */
+/**
+ * Записывает связи франшизы. Prisma хранит такую связь односторонне, но
+ * читаем мы обе стороны, поэтому заносить достаточно один раз.
+ */
+async function linkRelated(titleId: number, relatedMalIds: number[]) {
+  if (relatedMalIds.length === 0) return;
+
+  const targets = await prisma.title.findMany({
+    where: { malId: { in: relatedMalIds }, id: { not: titleId } },
+    select: { id: true },
+  });
+  if (targets.length === 0) return;
+
+  await prisma.title.update({
+    where: { id: titleId },
+    data: { related: { connect: targets.map((t) => ({ id: t.id })) } },
+  });
+}
+
 export async function syncRelated({
   seeds = 20,
   limit = 40,
@@ -544,7 +563,6 @@ export async function syncRelated({
 
   for (const seed of pending) {
     if (!seed.malId) continue;
-    if (added >= limit) break;
 
     // Jikan'овская ручка /relations лежит куда чаще остального API — для
     // отдельных тайтлов она отдаёт 504 неделями. AniList выручает.
@@ -571,6 +589,13 @@ export async function syncRelated({
         // Часть id ведёт на удалённые записи — это нормально.
       }
     }
+
+    // Сами связи раньше выбрасывались: их использовали только чтобы дотянуть
+    // недостающие части франшизы в каталог. Теперь запоминаем — по ним
+    // страница тайтла показывает сиквелы и побочки рядом. Пишем всегда, даже
+    // когда потолок новых тайтлов уже выбран: связи между теми, что уже есть
+    // в каталоге, ничего не стоят.
+    await linkRelated(seed.id, related);
 
     await prisma.title.update({
       where: { id: seed.id },

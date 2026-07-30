@@ -9,7 +9,9 @@ import { Artwork } from "@/components/artwork";
 import { ProgressStepper } from "@/components/progress-stepper";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { StatusPicker } from "@/components/status-picker";
+import { AnimeCard } from "@/components/anime-card";
 import { prisma } from "@/lib/prisma";
+import { getNearby, type CardTitle } from "@/lib/queries";
 import { getEntry } from "@/lib/watchlist";
 import { formatDuration, remainingMinutes } from "@/lib/backlog";
 import { pickTitle } from "@/lib/title-locale";
@@ -72,6 +74,7 @@ export default async function TitlePage({
   const entry = await getEntry(title.id);
   const time = await getTranslations("time");
   const timeLeft = remainingMinutes(title, entry?.progress ?? 0);
+  const nearby = await getNearby(title.id, locale);
 
   const meta = [
     title.format,
@@ -184,10 +187,37 @@ export default async function TitlePage({
         </div>
       </div>
 
+      {/* Франшиза и похожее — рядом, чтобы после серии было куда пойти дальше,
+          не возвращаясь в каталог. Своя франшиза идёт первой. */}
+      {(nearby.franchise.length > 0 || nearby.similar.length > 0) && (
+        <div className="mx-auto mt-14 max-w-[1200px] px-4 md:px-10">
+          {nearby.franchise.length > 0 && (
+            <NearbyRow heading={t("franchise")} items={nearby.franchise} />
+          )}
+          {nearby.similar.length > 0 && (
+            <NearbyRow heading={t("similar")} items={nearby.similar} />
+          )}
+        </div>
+      )}
+
       <div className="h-16" />
       <SiteFooter />
       <div className="h-20 md:hidden" />
       <MobileNav current="" />
     </main>
+  );
+}
+
+/** Ряд карточек под тайтлом: франшиза или похожее. */
+function NearbyRow({ heading, items }: { heading: string; items: CardTitle[] }) {
+  return (
+    <section className="mt-10 first:mt-0">
+      <h2 className="font-display text-[21px] font-semibold tracking-[-0.02em]">{heading}</h2>
+      <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-[18px]">
+        {items.map((item, i) => (
+          <AnimeCard key={item.id} item={item} deg={150 + (i % 8) * 6} />
+        ))}
+      </div>
+    </section>
   );
 }
