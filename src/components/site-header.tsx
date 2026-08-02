@@ -5,6 +5,8 @@ import { SearchField } from "@/components/search-field";
 import { UserMenu } from "@/components/user-menu";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { TelegramIcon } from "@/components/telegram-icon";
+import { UpdatesBell } from "@/components/updates-bell";
+import { LATEST_UPDATE } from "@/lib/changelog";
 import { TELEGRAM_URL } from "@/lib/seo";
 
 const NAV = [
@@ -23,6 +25,7 @@ export async function SiteHeader({
   searchQuery?: string;
 }) {
   const t = await getTranslations("nav");
+  const u = await getTranslations("updates");
 
   return (
     <header className="relative z-30 flex items-center justify-between gap-3 px-4 py-4 md:px-10 md:py-6">
@@ -59,6 +62,9 @@ export async function SiteHeader({
 
       <div className="flex min-w-0 flex-1 items-center justify-end gap-2 md:flex-none md:gap-3">
         <SearchField initialQuery={searchQuery} />
+        {/* «Что нового» с точкой-индикатором — тихий повод вернуться:
+            сайт обновляется почти каждый день, пусть это будет видно. */}
+        <UpdatesBell latest={LATEST_UPDATE} label={u("title")} />
         {/* Канал проекта — новости и новые фичи. На узких экранах прячется:
             место дороже, а в подвале ссылка всё равно есть. */}
         <a

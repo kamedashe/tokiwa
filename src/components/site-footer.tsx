@@ -15,6 +15,7 @@ import { TELEGRAM_URL } from "@/lib/seo";
 export async function SiteFooter() {
   const t = await getTranslations("footer");
   const nav = await getTranslations("nav");
+  const upd = await getTranslations("updates");
   const country = await visitorCountry();
   const donate = pickDonateLink(country);
 
@@ -30,6 +31,9 @@ export async function SiteFooter() {
           </Link>
           <Link href="/friends" className="transition-colors hover:text-foreground">
             {t("friends")}
+          </Link>
+          <Link href="/updates" className="transition-colors hover:text-foreground">
+            {upd("title")}
           </Link>
           <a
             href={TELEGRAM_URL}

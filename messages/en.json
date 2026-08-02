@@ -272,5 +272,10 @@
       "name": "Makes you think",
       "tagline": "Heavy — and it stays with you"
     }
+  },
+  "updates": {
+    "title": "What's new",
+    "intro": "The site ships almost daily — here's what you may have noticed.",
+    "try": "Try it"
   }
 }
