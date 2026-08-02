@@ -77,7 +77,10 @@
     "statusAnnounced": "Анонс",
     "nextEpisode": "Наступна серія — {date}",
     "franchise": "Франшиза",
-    "similar": "Схоже"
+    "similar": "Схоже",
+    "allEpisodes": "Усі серії",
+    "episodesHint": "Клік по номеру позначає все до нього. Повторний клік по останній — знімає її.",
+    "hideEpisodes": "Згорнути"
   },
   "status": {
     "watching": "Дивлюся",

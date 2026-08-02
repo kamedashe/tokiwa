@@ -77,7 +77,10 @@
     "statusAnnounced": "Announced",
     "nextEpisode": "Next episode — {date}",
     "franchise": "Franchise",
-    "similar": "Similar"
+    "similar": "Similar",
+    "allEpisodes": "All episodes",
+    "episodesHint": "Click a number to mark everything up to it. Click the last one again to unmark it.",
+    "hideEpisodes": "Collapse"
   },
   "status": {
     "watching": "Watching",

@@ -8,6 +8,10 @@ import { setProgress } from "@/lib/watchlist";
 /**
  * Счётчик просмотренных серий — основной жест в трекере, поэтому «+1» стоит
  * крупно и первым. Гостя уводим на логин, а не глотаем клик.
+ *
+ * Для длинных сериалов «+1» бесполезен — у «Блича» 366 серий, — поэтому под
+ * счётчиком раскрывается сетка номеров: клик по номеру отмечает всё до него,
+ * повторный клик по последней отмеченной снимает её (промахи случаются).
  */
 export function ProgressStepper({
   titleId,
@@ -22,6 +26,7 @@ export function ProgressStepper({
   const router = useRouter();
   const [value, setValue] = useState(initialProgress);
   const [pending, startTransition] = useTransition();
+  const [expanded, setExpanded] = useState(false);
 
   const max = episodesCount ?? Infinity;
   const done = episodesCount !== null && value >= episodesCount;
@@ -93,7 +98,45 @@ export function ProgressStepper({
             {t("markAll")}
           </button>
         )}
+
+        {episodesCount !== null && episodesCount > 1 && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="text-[13px] text-subtle transition-colors hover:text-accent"
+          >
+            {expanded ? t("hideEpisodes") : t("allEpisodes")}
+          </button>
+        )}
       </div>
+
+      {expanded && episodesCount !== null && (
+        <div>
+          <p className="mb-2 text-[12px] text-dim">{t("episodesHint")}</p>
+          <div className="flex max-h-[264px] max-w-[560px] flex-wrap gap-1.5 overflow-y-auto pr-1">
+            {Array.from({ length: episodesCount }, (_, i) => i + 1).map((n) => {
+              const watched = n <= value;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  // Клик по последней отмеченной — шаг назад: промахи случаются.
+                  onClick={() => commit(n === value ? n - 1 : n)}
+                  disabled={pending}
+                  aria-pressed={watched}
+                  className={`h-9 min-w-9 rounded-lg px-1 font-display text-[12px] font-semibold tabular-nums transition-colors disabled:opacity-40 ${
+                    watched
+                      ? "bg-accent/90 text-ink hover:bg-accent"
+                      : "border border-hairline text-muted hover:border-white/25 hover:text-foreground"
+                  }`}
+                >
+                  {n}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {episodesCount !== null && episodesCount > 0 && (
         <div className="h-1.5 w-full max-w-[420px] overflow-hidden rounded-full bg-white/[0.06]">

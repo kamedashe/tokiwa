@@ -77,7 +77,10 @@
     "statusAnnounced": "放送予定",
     "nextEpisode": "次の話 — {date}",
     "franchise": "シリーズ",
-    "similar": "似ている作品"
+    "similar": "似ている作品",
+    "allEpisodes": "全エピソード",
+    "episodesHint": "番号をクリックすると、そこまで視聴済みになります。最後の話をもう一度クリックすると解除。",
+    "hideEpisodes": "折りたたむ"
   },
   "status": {
     "watching": "見ている",
