@@ -280,7 +280,11 @@
   "updates": {
     "title": "What's new",
     "intro": "The site ships almost daily — here's what you may have noticed.",
-    "try": "Try it"
+    "try": "Try it",
+    "installTitle": "TokiWa installs like an app",
+    "installIos": "Tap Share at the bottom of Safari, then “Add to Home Screen”.",
+    "installAndroid": "Browser menu (⋮) → “Install app” or “Add to Home screen”.",
+    "installClose": "Close"
   },
   "calendar": {
     "title": "Episode calendar",

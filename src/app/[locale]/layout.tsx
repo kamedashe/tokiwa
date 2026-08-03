@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Manrope, Noto_Sans_JP, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { routing } from "@/i18n/routing";
+import { InstallPrompt } from "@/components/install-prompt";
 import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
 
@@ -74,6 +75,9 @@ export async function generateMetadata({
       statusBarStyle: "black-translucent",
     },
     icons: {
+      // Обычную иконку перечисляем явно: любой заданный здесь icons
+      // отменяет автоподхват app/icon.svg, и вкладка остаётся без значка.
+      icon: "/icon.svg",
       apple: "/apple-touch-icon.png",
     },
   };
@@ -97,13 +101,27 @@ export default async function RootLayout({
   // Без этого статическая генерация по локалям не работает.
   setRequestLocale(locale);
 
+  const install = await getTranslations({ locale, namespace: "updates" });
+
   return (
     <html
       lang={locale}
       className={`${spaceGrotesk.variable} ${manrope.variable} ${notoJp.variable}`}
     >
       <body>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          {children}
+          {/* Подсказка про установку — прежде всего для iPhone: Safari
+              баннер не показывает, и сам человек не догадается. */}
+          <InstallPrompt
+            labels={{
+              title: install("installTitle"),
+              ios: install("installIos"),
+              android: install("installAndroid"),
+              close: install("installClose"),
+            }}
+          />
+        </NextIntlClientProvider>
         <Analytics />
       </body>
     </html>

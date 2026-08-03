@@ -280,7 +280,11 @@
   "updates": {
     "title": "新着情報",
     "intro": "サイトはほぼ毎日更新されています。最近の変更はこちら。",
-    "try": "試してみる"
+    "try": "試してみる",
+    "installTitle": "TokiWaはアプリとして追加できます",
+    "installIos": "Safari下部の「共有」→「ホーム画面に追加」。",
+    "installAndroid": "ブラウザメニュー（⋮）→「アプリをインストール」または「ホーム画面に追加」。",
+    "installClose": "閉じる"
   },
   "calendar": {
     "title": "放送カレンダー",
