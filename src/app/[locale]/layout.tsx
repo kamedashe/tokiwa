@@ -66,8 +66,23 @@ export async function generateMetadata({
       siteName: t("siteName"),
       locale: OG_LOCALES[locale] ?? "ru_RU",
     },
+    // Установленная PWA: имя под иконкой и полноэкранный запуск на iOS —
+    // Android берёт то же самое из манифеста.
+    appleWebApp: {
+      capable: true,
+      title: t("siteName"),
+      statusBarStyle: "black-translucent",
+    },
+    icons: {
+      apple: "/apple-touch-icon.png",
+    },
   };
 }
+
+/** Цвет системных панелей вокруг сайта — наш фоновый, без белых рамок. */
+export const viewport = {
+  themeColor: "#050506",
+};
 
 export default async function RootLayout({
   children,

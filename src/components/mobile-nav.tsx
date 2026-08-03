@@ -9,6 +9,7 @@ import { Link } from "@/i18n/navigation";
 const ITEMS = [
   { href: "/", key: "home", icon: HomeIcon },
   { href: "/catalog", key: "catalog", icon: SearchIcon },
+  { href: "/calendar", key: "calendar", icon: CalendarIcon },
   { href: "/my", key: "myList", icon: ListIcon },
   { href: "/backlog", key: "time", icon: ClockIcon },
 ] as const;
@@ -63,6 +64,15 @@ function HomeIcon() {
     <svg {...ICON}>
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M5 9.5V21h14V9.5" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg {...ICON}>
+      <rect x="4" y="5.5" width="16" height="15" rx="2.5" />
+      <path d="M4 10.5h16M8.5 3.5v3.5M15.5 3.5v3.5" />
     </svg>
   );
 }

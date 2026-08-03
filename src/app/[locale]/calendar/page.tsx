@@ -110,7 +110,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ local
       <div className="h-16" />
       <SiteFooter />
       <div className="h-20 md:hidden" />
-      <MobileNav current="" />
+      <MobileNav current="/calendar" />
     </main>
   );
 }

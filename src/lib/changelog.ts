@@ -23,6 +23,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-08-03",
     ru: {
+      title: "TokiWa ставится как приложение",
+      text: "Откройте сайт с телефона и выберите «Установить приложение» (Android) или «На экран „Домой“» (iPhone) — иконка на рабочем столе, полный экран, без адресной строки.",
+    },
+    en: {
+      title: "TokiWa installs like an app",
+      text: "Open the site on your phone and pick “Install app” (Android) or “Add to Home Screen” (iPhone) — an icon on your home screen, full screen, no address bar.",
+    },
+  },
+  {
+    date: "2026-08-03",
+    ru: {
       title: "Календарь серий",
       text: "Расписание на неделю вперёд по дням: что выходит, во сколько и какая серия. Тайтлы из вашего списка помечены.",
     },
