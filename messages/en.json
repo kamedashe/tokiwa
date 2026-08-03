@@ -17,7 +17,8 @@
     "signOut": "Sign out",
     "backlog": "How much time I have",
     "mainNav": "Main navigation",
-    "telegram": "Our Telegram"
+    "telegram": "Our Telegram",
+    "calendar": "Calendar"
   },
   "home": {
     "spotlight": "SPOTLIGHT",
@@ -103,7 +104,10 @@
     "tgConnect": "Connect",
     "tgOpen": "Open the bot and press Start",
     "tgLinked": "Connected",
-    "tgUnlink": "Disconnect"
+    "tgUnlink": "Disconnect",
+    "guestEpisodesNudge": "With an account you'd get this by email on release day",
+    "guestEpisodesCta": "Turn on notifications",
+    "startWatching": "→ Watching"
   },
   "backlog": {
     "title": "How much time I have",
@@ -277,5 +281,14 @@
     "title": "What's new",
     "intro": "The site ships almost daily — here's what you may have noticed.",
     "try": "Try it"
+  },
+  "calendar": {
+    "title": "Episode calendar",
+    "intro": "What airs this week. Titles from your list are marked.",
+    "inList": "in your list",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "empty": "No dates for this week yet.",
+    "episode": "episode {n}"
   }
 }

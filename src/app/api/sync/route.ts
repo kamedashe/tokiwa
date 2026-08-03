@@ -8,6 +8,7 @@ import {
   upgradePosters,
 } from "@/lib/sync";
 import { notifyNewEpisodes } from "@/lib/notify-episodes";
+import { sendWeeklyDigests, isDigestWindow } from "@/lib/digest";
 
 // Прогон ходит во внешние API и упирается в их задержки. 60 секунд — потолок
 // бесплатного тарифа Vercel; проходы инкрементальные и в него укладываются.
@@ -69,6 +70,12 @@ async function run(request: Request) {
       // После свежих данных о сериях — уведомления: Telegram или почта.
       const notified = await notifyNewEpisodes({ budgetMs: 20_000 });
 
+      // Понедельничное утро — дошлём хвост воскресного дайджеста тем,
+      // до кого вечерний прогон не успел добраться.
+      const digest = isDigestWindow()
+        ? await sendWeeklyDigests({ budgetMs: 18_000 })
+        : null;
+
       // Остатком добираем обложки: связи в каталоге почти достроены, и этот
       // прогон всё равно простаивает. Третий крон завести нельзя — на
       // бесплатном тарифе их всего два, оба заняты.
@@ -84,6 +91,7 @@ async function run(request: Request) {
         ongoingUpdated: ongoing?.updated ?? 0,
         notifiedTg: notified.tg ?? 0,
         notifiedMail: notified.mail ?? 0,
+        digestSent: digest?.sent ?? 0,
         postersUpgraded: posters?.upgraded ?? 0,
         posterCursor: posters?.cursor ?? null,
       });
@@ -114,7 +122,14 @@ async function run(request: Request) {
     // то уходит в ретраи — ему достаётся остаток бюджета.
     const ongoing = await syncOngoingEpisodes({ budgetMs: 16_000 });
     const notified = await notifyNewEpisodes({ budgetMs: 20_000 });
-    const shikimori = await syncCatalogFromShikimoriCron({ budgetMs: 8_000 });
+
+    // Воскресный вечер — главное окно дайджеста: люди дома, впереди неделя.
+    // В этот прогон каталог подождёт — письма важнее пары новых тайтлов.
+    const digest = isDigestWindow() ? await sendWeeklyDigests({ budgetMs: 18_000 }) : null;
+
+    const shikimori = digest
+      ? { added: 0, nextPage: null }
+      : await syncCatalogFromShikimoriCron({ budgetMs: 8_000 });
 
     const left = maxDuration * 1000 - (Date.now() - startedAt) - 5_000;
     const synced = left > 5_000 ? await syncCatalog({ pages, budgetMs: left }) : 0;
@@ -126,6 +141,7 @@ async function run(request: Request) {
       mode: "catalog",
       synced,
       ongoingUpdated: ongoing.updated,
+      digestSent: digest?.sent ?? 0,
       notifiedTg: notified.tg ?? 0,
       notifiedMail: notified.mail ?? 0,
       shikimoriAdded: shikimori.added,

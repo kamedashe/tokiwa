@@ -140,6 +140,10 @@ model User {
   /// Письма «вышли новые серии». Выключается ссылкой-отпиской из письма.
   emailNotifications Boolean @default(true)
 
+  /// Когда ушёл последний недельный дайджест — антидубль: воскресный крон
+  /// может не успеть всех за прогон и дошлёт хвост утром понедельника.
+  digestSentAt DateTime?
+
   accounts     Account[]
   sessions     Session[]
   watchlist    WatchlistEntry[]

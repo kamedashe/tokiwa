@@ -136,6 +136,49 @@ export async function getNearby(
   return { franchise, similar: similarRows.map((r) => toCard(r, locale)) };
 }
 
+export interface CalendarItem extends CardTitle {
+  at: Date;
+  episode: number;
+  /** Тайтл лежит в списке посетителя — календарь подсвечивает такие. */
+  inList: boolean;
+}
+
+/**
+ * Расписание серий на неделю вперёд. Берём всех выходящих с известной датой,
+ * а не только список посетителя: гостю без куки тоже должно быть что смотреть,
+ * плюс чужие премьеры — способ найти новое. Своё помечается бейджем.
+ */
+export async function getWeekSchedule(
+  locale: string,
+  viewerId: string | null,
+): Promise<CalendarItem[]> {
+  const now = new Date();
+  const weekAhead = new Date(now.getTime() + 7 * 86_400_000);
+
+  const rows = await prisma.title.findMany({
+    where: {
+      status: "releasing",
+      nextEpisodeAt: { gte: now, lte: weekAhead },
+    },
+    orderBy: { nextEpisodeAt: "asc" },
+    select: {
+      ...CARD_SELECT,
+      episodesAired: true,
+      nextEpisodeAt: true,
+      ...(viewerId
+        ? { watchlist: { where: { userId: viewerId }, select: { id: true } } }
+        : {}),
+    },
+  });
+
+  return rows.map((r) => ({
+    ...toCard(r, locale),
+    at: r.nextEpisodeAt!,
+    episode: (r.episodesAired ?? 0) + 1,
+    inList: "watchlist" in r ? (r as { watchlist: unknown[] }).watchlist.length > 0 : false,
+  }));
+}
+
 export const SEASON_KEYS = ["winter", "spring", "summer", "fall"] as const;
 
 /** «Лето 2026» на языке пользователя. Подписи сезонов лежат в словаре. */

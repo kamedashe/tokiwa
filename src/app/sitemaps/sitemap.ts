@@ -56,6 +56,7 @@ async function staticShard(): Promise<MetadataRoute.Sitemap> {
     // Витрина главной фичи — с гостевым режимом работает без входа.
     ...entriesFor("/backlog", { changeFrequency: "monthly", priority: 0.6 }),
     ...entriesFor("/updates", { changeFrequency: "weekly", priority: 0.3 }),
+    ...entriesFor("/calendar", { changeFrequency: "daily", priority: 0.6 }),
     // Подборки по настроению отвечают на живые запросы вроде
     // «аниме чтобы поплакать» — для поиска это отдельные посадочные.
     ...MOODS.flatMap((m) =>

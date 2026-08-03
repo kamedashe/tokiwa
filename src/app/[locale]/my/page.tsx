@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
 import { GuestBanner } from "@/components/guest-banner";
+import { StartWatchingButton } from "@/components/start-watching-button";
 import { FeedbackNudge } from "@/components/feedback-nudge";
 import { TelegramConnect } from "@/components/telegram-connect";
 import { getMyList, getNewEpisodes, getPlannedAiring } from "@/lib/watchlist";
@@ -143,6 +144,21 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
                     </Link>
                   ))}
                 </div>
+
+                {/* Гость видит пользу уведомлений прямо сейчас — лучший момент
+                    предложить аккаунт: не «сохрани список», а конкретное
+                    «об этом придёт письмо». */}
+                {!session?.user && (
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-accent/15 pt-3">
+                    <span className="text-[12px] text-muted">{t("guestEpisodesNudge")}</span>
+                    <Link
+                      href="/login?next=/my"
+                      className="rounded-full bg-accent px-3 py-1 text-[12px] font-bold text-ink transition-colors hover:bg-accent-soft"
+                    >
+                      {t("guestEpisodesCta")}
+                    </Link>
+                  </div>
+                )}
               </>
             )}
 
@@ -157,18 +173,22 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
                 </div>
                 <div className="mt-3 flex flex-col gap-2.5">
                   {plannedAiring.map((e) => (
-                    <Link
-                      key={e.slug}
-                      href={`/anime/${e.slug}`}
-                      className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
-                    >
-                      <span className="font-display text-[14px] font-semibold transition-colors group-hover:text-accent">
-                        {e.name}
-                      </span>
-                      <span className="text-[12px] text-muted">
-                        {t("airedCount", { count: e.aired })}
-                      </span>
-                    </Link>
+                    <div key={e.slug} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                      <Link
+                        href={`/anime/${e.slug}`}
+                        className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+                      >
+                        <span className="font-display text-[14px] font-semibold transition-colors group-hover:text-accent">
+                          {e.name}
+                        </span>
+                        <span className="text-[12px] text-muted">
+                          {t("airedCount", { count: e.aired })}
+                        </span>
+                      </Link>
+                      {/* Один клик — и тайтл в «смотрю»: человек сам подключил
+                          себе уведомления о сериях. */}
+                      <StartWatchingButton titleId={e.titleId} label={t("startWatching")} />
+                    </div>
                   ))}
                 </div>
               </>

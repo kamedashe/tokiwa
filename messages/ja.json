@@ -17,7 +17,8 @@
     "signOut": "ログアウト",
     "backlog": "残り時間",
     "mainNav": "メインナビゲーション",
-    "telegram": "公式Telegram"
+    "telegram": "公式Telegram",
+    "calendar": "カレンダー"
   },
   "home": {
     "spotlight": "注目作品",
@@ -103,7 +104,10 @@
     "tgConnect": "接続する",
     "tgOpen": "ボットを開いてStartを押す",
     "tgLinked": "接続済み",
-    "tgUnlink": "解除"
+    "tgUnlink": "解除",
+    "guestEpisodesNudge": "アカウントがあれば配信日にメールで届きます",
+    "guestEpisodesCta": "通知をオンにする",
+    "startWatching": "→ 視聴中へ"
   },
   "backlog": {
     "title": "残り時間",
@@ -277,5 +281,14 @@
     "title": "新着情報",
     "intro": "サイトはほぼ毎日更新されています。最近の変更はこちら。",
     "try": "試してみる"
+  },
+  "calendar": {
+    "title": "放送カレンダー",
+    "intro": "今週の放送予定。リスト内の作品にはマークが付きます。",
+    "inList": "リスト内",
+    "today": "今日",
+    "tomorrow": "明日",
+    "empty": "今週の予定はまだありません。",
+    "episode": "第{n}話"
   }
 }

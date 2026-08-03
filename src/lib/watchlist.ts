@@ -188,6 +188,7 @@ export async function getNewEpisodes(locale: string): Promise<NewEpisodeItem[]> 
 }
 
 export interface PlannedAiringItem {
+  titleId: number;
   slug: string;
   name: string;
   aired: number;
@@ -209,13 +210,14 @@ export async function getPlannedAiring(locale: string): Promise<PlannedAiringIte
     },
     select: {
       title: {
-        select: { slug: true, title: true, titleRu: true, titleJp: true, episodesAired: true },
+        select: { id: true, slug: true, title: true, titleRu: true, titleJp: true, episodesAired: true },
       },
     },
   });
 
   return entries
     .map((e) => ({
+      titleId: e.title.id,
       slug: e.title.slug,
       name: pickTitle(e.title, locale).title,
       aired: e.title.episodesAired!,
