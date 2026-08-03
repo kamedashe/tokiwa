@@ -21,6 +21,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-08-03",
+    ru: {
+      title: "Календарь серий",
+      text: "Расписание на неделю вперёд по дням: что выходит, во сколько и какая серия. Тайтлы из вашего списка помечены.",
+    },
+    en: {
+      title: "Episode calendar",
+      text: "A week ahead, day by day: what airs, when, and which episode. Titles from your list are marked.",
+    },
+    href: "/calendar",
+  },
+  {
+    date: "2026-08-03",
+    ru: {
+      title: "Недельный дайджест на почту",
+      text: "Раз в неделю, воскресным вечером: какие серии выходят, что из планов уже началось и сколько часов в бэклоге. Отписка в один клик.",
+    },
+    en: {
+      title: "Weekly email digest",
+      text: "Once a week, Sunday evening: which episodes air, what from your plans has started, and how many hours your backlog holds. One-click unsubscribe.",
+    },
+  },
+  {
     date: "2026-07-30",
     ru: {
       title: "Сетка серий на странице тайтла",
