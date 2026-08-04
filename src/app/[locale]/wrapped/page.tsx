@@ -7,6 +7,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { ShareStats } from "@/components/share-stats";
 import { getWrappedStats } from "@/lib/wrapped-queries";
 import { formatDuration } from "@/lib/backlog";
+import { pickDonateLink } from "@/lib/donate";
+import { visitorCountry } from "@/lib/geo";
 
 // Личная страница — рендерится под пользователя.
 export const dynamic = "force-dynamic";
@@ -32,6 +34,8 @@ export default async function WrappedPage({
   const t = await getTranslations("wrapped");
   const time = await getTranslations("time");
   const stats = await getWrappedStats(locale);
+  // Ссылка на донат зависит от страны: Boosty для СНГ, Ko-fi остальным.
+  const donate = await visitorCountry().then(pickDonateLink);
 
   if (!stats || stats.watchedMinutes === 0) {
     return (
@@ -148,6 +152,26 @@ export default async function WrappedPage({
             }}
           />
         </div>
+
+        {/* Момент, когда человек только что увидел свои часы, — единственный,
+            где просьба о поддержке звучит уместно, а не назойливо. Без ссылки
+            в окружении блок не появляется вовсе. */}
+        {donate && (
+          <div className="mt-10 rounded-2xl border border-hairline bg-white/[0.02] p-5 text-center">
+            <div className="font-display text-[15px] font-semibold">{t("supportTitle")}</div>
+            <p className="mx-auto mt-2 max-w-[46ch] text-[13px] leading-relaxed text-muted">
+              {t("supportText")}
+            </p>
+            <a
+              href={donate.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block rounded-full border border-accent/40 px-5 py-2 text-[13px] font-bold text-accent transition-colors hover:bg-accent/10"
+            >
+              ♥ {t("supportCta")}
+            </a>
+          </div>
+        )}
       </div>
 
       <SiteFooter />

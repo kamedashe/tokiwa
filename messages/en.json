@@ -241,7 +241,10 @@
     "shareImage": "Share as image",
     "preparing": "Preparing image…",
     "shareTextOnly": "copy as text",
-    "shareFailed": "Didn't work. Try again."
+    "shareFailed": "Didn't work. Try again.",
+    "supportTitle": "Free to use, no ads",
+    "supportText": "TokiWa is built by one person. If these numbers were fun, you can support the project — it keeps it running.",
+    "supportCta": "Support"
   },
   "guest": {
     "saveTitle": "Your list lives in this browser",

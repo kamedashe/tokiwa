@@ -241,7 +241,10 @@
     "shareImage": "画像でシェア",
     "preparing": "画像を生成中…",
     "shareTextOnly": "テキストでコピー",
-    "shareFailed": "失敗しました。もう一度お試しください。"
+    "shareFailed": "失敗しました。もう一度お試しください。",
+    "supportTitle": "無料・広告なし",
+    "supportText": "TokiWaは一人で作っています。数字が面白かったら、プロジェクトを支援していただけると続けられます。",
+    "supportCta": "支援する"
   },
   "guest": {
     "saveTitle": "リストはこのブラウザに保存されています",
