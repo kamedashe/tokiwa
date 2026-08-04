@@ -15,18 +15,22 @@ export function UserMenuDropdown({
   name,
   image,
   donateUrl,
+  isSupporter = false,
   labels,
   signOutAction,
 }: {
   name: string | null | undefined;
   image: string | null | undefined;
   donateUrl: string | null;
+  /** Поддержал проект — рядом с именем горит сердце. */
+  isSupporter?: boolean;
   labels: {
     myList: string;
     backlog: string;
     wrapped: string;
     feedback: string;
     support: string;
+    supporterBadge: string;
     signOut: string;
   };
   signOutAction: () => Promise<void>;
@@ -74,8 +78,18 @@ export function UserMenuDropdown({
       >
         <div className="overflow-hidden rounded-xl border border-hairline bg-surface-2 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
           {name && (
-            <div className="truncate border-b border-hairline px-4 py-3 text-[13px] text-muted">
-              {name}
+            <div className="border-b border-hairline px-4 py-3">
+              <div className="truncate text-[13px] text-muted">{name}</div>
+              {/* Единственная видимая привилегия сторонника — и этого хватает:
+                  платят здесь за причастность, а не за функции. */}
+              {isSupporter && (
+                <div
+                  className="mt-1 text-[11px] font-semibold text-accent"
+                  title={labels.supporterBadge}
+                >
+                  ♥ {labels.supporterBadge}
+                </div>
+              )}
             </div>
           )}
 

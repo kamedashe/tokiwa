@@ -14,7 +14,8 @@
     "db:seed-shikimori": "tsx scripts/sync-shikimori.ts",
     "db:related": "tsx scripts/sync-related.ts",
     "feedback": "tsx scripts/read-feedback.ts",
-    "stats": "tsx scripts/stats.ts"
+    "stats": "tsx scripts/stats.ts",
+    "supporter": "tsx scripts/supporter.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -144,6 +144,13 @@ model User {
   /// может не успеть всех за прогон и дошлёт хвост утром понедельника.
   digestSentAt DateTime?
 
+  /// Поддержал проект на Boosty или Ko-fi. Ставится вручную скриптом
+  /// (`npm run supporter`): публичного API подписок у Boosty нет, а на нашем
+  /// масштабе список сторонников проще сверять глазами, чем строить обмен.
+  isSupporter Boolean @default(false)
+  /// Публичное имя в благодарностях. Пусто — значит просили не называть.
+  supporterName String?
+
   accounts     Account[]
   sessions     Session[]
   watchlist    WatchlistEntry[]

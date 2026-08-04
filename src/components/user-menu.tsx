@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { signOutAction } from "@/lib/auth-actions";
 import { pickDonateLink } from "@/lib/donate";
 import { visitorCountry } from "@/lib/geo";
@@ -29,19 +30,29 @@ export async function UserMenu() {
   const footer = await getTranslations("footer");
   const feedback = await getTranslations("feedback");
   const wrapped = await getTranslations("wrapped");
+  const support = await getTranslations("support");
   const donate = pickDonateLink(await visitorCountry());
+
+  const supporter = session.user.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { isSupporter: true },
+      })
+    : null;
 
   return (
     <UserMenuDropdown
       name={name}
       image={image}
       donateUrl={donate?.url ?? null}
+      isSupporter={supporter?.isSupporter ?? false}
       labels={{
         myList: t("myList"),
         backlog: t("backlog"),
         wrapped: wrapped("menu"),
         feedback: feedback("title"),
         support: footer("support"),
+        supporterBadge: support("badge"),
         signOut: t("signOut"),
       }}
       signOutAction={signOutAction}

@@ -57,6 +57,7 @@ async function staticShard(): Promise<MetadataRoute.Sitemap> {
     ...entriesFor("/backlog", { changeFrequency: "monthly", priority: 0.6 }),
     ...entriesFor("/updates", { changeFrequency: "weekly", priority: 0.3 }),
     ...entriesFor("/calendar", { changeFrequency: "daily", priority: 0.6 }),
+    ...entriesFor("/support", { changeFrequency: "monthly", priority: 0.3 }),
     // Подборки по настроению отвечают на живые запросы вроде
     // «аниме чтобы поплакать» — для поиска это отдельные посадочные.
     ...MOODS.flatMap((m) =>

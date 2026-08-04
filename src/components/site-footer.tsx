@@ -44,17 +44,15 @@ export async function SiteFooter() {
             <TelegramIcon className="size-3.5" />
             Telegram
           </a>
-          {donate && (
-            <a
-              href={donate.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 transition-colors hover:text-accent"
-            >
-              <span aria-hidden>♥</span>
-              {t("support")}
-            </a>
-          )}
+          {/* Ведём на свою страницу, а не сразу на платёжку: там объяснено,
+              за что просим и что получают поддержавшие. */}
+          <Link
+            href="/support"
+            className="flex items-center gap-1.5 transition-colors hover:text-accent"
+          >
+            <span aria-hidden>♥</span>
+            {t("support")}
+          </Link>
         </div>
 
         <p className="max-w-[46ch] leading-relaxed">

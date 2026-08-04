@@ -297,5 +297,22 @@
     "tomorrow": "Tomorrow",
     "empty": "No dates for this week yet.",
     "episode": "episode {n}"
+  },
+  "support": {
+    "title": "Support TokiWa",
+    "intro": "The site is built by one person. It's free, ad-free and has no paid features — counting time and keeping lists stays open to everyone.",
+    "whyTitle": "Then why support it",
+    "why": "The domain, database and email cost money every month. Support covers the bills and buys time to build features instead of figuring out how to pay for them.",
+    "perksTitle": "What supporters get",
+    "perk1": "A ♥ badge next to your name on the site",
+    "perk2": "Your name on the thanks page — if you want it there",
+    "perk3": "Early access to new features before everyone else",
+    "perk4": "A say in what comes next: supporters get asked first",
+    "cta": "Support",
+    "honestTitle": "Honestly about the scale",
+    "honest": "The project is two weeks old and supporters are few. Any amount helps, and a one-off tip is just as good as a subscription.",
+    "thanksTitle": "Thanks to these people",
+    "thanksEmpty": "Names of those who supported the project will appear here.",
+    "badge": "supported the project"
   }
 }
