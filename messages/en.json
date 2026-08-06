@@ -247,12 +247,16 @@
     "supportCta": "Support"
   },
   "guest": {
-    "saveTitle": "Your list lives in this browser",
-    "saveText": "An account adds what a cookie can't: new-episode notifications for your shows, your list on any device — and it survives clearing your history.",
+    "saveTitle": "Keep your list on every device",
+    "saveText": "Sign in with Google — two clicks, no password. Your list shows up on your phone and computer, and new-episode emails switch on.",
     "saveCta": "Sign in to save",
     "weightTitle": "{titles} titles and {time} — in this browser only",
-    "weightText": "Your list lives in a cookie. Clear your history, switch browsers or phones, and it's gone along with your episode progress. Signing in takes a minute, keeps everything for good and turns on new-episode emails.",
-    "weightCta": "Save it in a minute"
+    "weightText": "Two clicks with Google and the list is yours for good: phone, computer, new-episode emails. No password needed.",
+    "weightCta": "Save it in a minute",
+    "googleCta": "Sign in with Google",
+    "otherWays": "other ways",
+    "importNudgeTitle": "{added} titles currently live in this browser's cookie",
+    "importNudgeText": "Two clicks with Google and your imported list is yours for good, on any device."
   },
   "moods": {
     "title": "By mood",

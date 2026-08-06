@@ -1,15 +1,18 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { GoogleSignInButton } from "@/components/google-signin-button";
 import { formatDuration } from "@/lib/backlog";
 
 /**
- * Напоминание гостю, что его список привязан к куке браузера, а не к
- * аккаунту. Это единственное место, где сайт просит регистрацию: не ради
- * доступа к функциям, а чтобы не потерять уже накопленное.
+ * Предложение гостю завести аккаунт. Продаём не страховку от потери куки,
+ * а пользу прямо сейчас: список на всех устройствах и письма о сериях —
+ * страх гипотетической потери люди откладывают «на потом», а телефон у
+ * каждого в руке уже сегодня.
  *
- * Когда известно, сколько накоплено, говорим прямо: «47 тайтлов и 312 часов
- * пропадут». Общее предупреждение люди пролистывают, названная цена потери —
- * нет. Пока в списке пара тайтлов, теряться нечему, и текст остаётся мягким.
+ * OAuth стартует прямо из баннера: каждый лишний экран на пути к входу
+ * режет прохождение примерно вдвое, поэтому страницы логина в этой воронке
+ * больше нет. Когда в списке от пяти тайтлов, заголовок называет накопленное
+ * ("47 тайтлов и 312 часов — только в этом браузере") — цену видно сразу.
  */
 export async function GuestBanner({
   next,
@@ -39,12 +42,16 @@ export async function GuestBanner({
           {heavy ? t("weightText") : t("saveText")}
         </p>
       </div>
-      <Link
-        href={`/login?next=${encodeURIComponent(next)}`}
-        className="rounded-full bg-accent px-5 py-2.5 text-[13px] font-bold text-ink transition-colors hover:bg-accent-soft"
-      >
-        {heavy ? t("weightCta") : t("saveCta")}
-      </Link>
+
+      <div className="flex flex-col items-center gap-1.5">
+        <GoogleSignInButton next={next} label={t("googleCta")} />
+        <Link
+          href={`/login?next=${encodeURIComponent(next)}`}
+          className="text-[11px] text-dim transition-colors hover:text-foreground"
+        >
+          {t("otherWays")}
+        </Link>
+      </div>
     </div>
   );
 }

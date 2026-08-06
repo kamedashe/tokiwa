@@ -91,7 +91,11 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
         </div>
 
         <div className="pb-16">
-          <ImportList importShikimori={importFromShikimori} importMal={importFromMalFile} />
+          <ImportList
+            importShikimori={importFromShikimori}
+            importMal={importFromMalFile}
+            isGuest={!session?.user}
+          />
         </div>
 
       <SiteFooter />
@@ -226,7 +230,11 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
       </div>
 
       <div className="h-12" />
-      <ImportList importShikimori={importFromShikimori} importMal={importFromMalFile} />
+      <ImportList
+            importShikimori={importFromShikimori}
+            importMal={importFromMalFile}
+            isGuest={!session?.user}
+          />
 
       <div className="h-16" />
       <div className="h-20 md:hidden" />

@@ -2,16 +2,20 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { GoogleSignInButton } from "@/components/google-signin-button";
 import type { ImportResponse } from "@/lib/import-actions";
 
 interface Props {
   /** Серверные экшены приходят пропсами — в клиентском компоненте их не создать. */
   importShikimori: (nickname: string) => Promise<ImportResponse>;
   importMal: (formData: FormData) => Promise<ImportResponse>;
+  /** Гость только что перенёс сотни тайтлов — лучший момент предложить вход. */
+  isGuest?: boolean;
 }
 
-export function ImportList({ importShikimori, importMal }: Props) {
+export function ImportList({ importShikimori, importMal, isGuest = false }: Props) {
   const t = useTranslations("import");
+  const g = useTranslations("guest");
   const [open, setOpen] = useState(false);
   const [nickname, setNickname] = useState("");
   const [result, setResult] = useState<ImportResponse | null>(null);
@@ -93,6 +97,21 @@ export function ImportList({ importShikimori, importMal }: Props) {
                 <span className="text-red-400">{t(`error.${result.reason}`)}</span>
               )}
             </p>
+          )}
+
+          {/* Пик вложенности: человек только что перенёс свой список целиком.
+              Именно здесь два клика до аккаунта конвертируют лучше любых
+              баннеров — и терять этот момент нельзя. */}
+          {isGuest && result?.ok && result.added > 0 && !pending && (
+            <div className="mt-4 rounded-xl border border-accent/30 bg-accent/[0.06] p-4">
+              <div className="font-display text-[13px] font-semibold">
+                {g("importNudgeTitle", { added: result.added })}
+              </div>
+              <p className="mt-1 text-[12px] leading-relaxed text-muted">{g("importNudgeText")}</p>
+              <div className="mt-3">
+                <GoogleSignInButton next="/my" label={g("googleCta")} />
+              </div>
+            </div>
           )}
         </div>
       )}
