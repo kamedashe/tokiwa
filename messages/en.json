@@ -249,7 +249,10 @@
   "guest": {
     "saveTitle": "Your list lives in this browser",
     "saveText": "An account adds what a cookie can't: new-episode notifications for your shows, your list on any device — and it survives clearing your history.",
-    "saveCta": "Sign in to save"
+    "saveCta": "Sign in to save",
+    "weightTitle": "{titles} titles and {time} — in this browser only",
+    "weightText": "Your list lives in a cookie. Clear your history, switch browsers or phones, and it's gone along with your episode progress. Signing in takes a minute, keeps everything for good and turns on new-episode emails.",
+    "weightCta": "Save it in a minute"
   },
   "moods": {
     "title": "By mood",

@@ -9,6 +9,9 @@ import { getWrappedStats } from "@/lib/wrapped-queries";
 import { formatDuration } from "@/lib/backlog";
 import { pickDonateLink } from "@/lib/donate";
 import { visitorCountry } from "@/lib/geo";
+import { auth } from "@/auth";
+import { getViewerId, getGuestListWeight } from "@/lib/guest";
+import { GuestBanner } from "@/components/guest-banner";
 
 // Личная страница — рендерится под пользователя.
 export const dynamic = "force-dynamic";
@@ -36,6 +39,8 @@ export default async function WrappedPage({
   const stats = await getWrappedStats(locale);
   // Ссылка на донат зависит от страны: Boosty для СНГ, Ko-fi остальным.
   const donate = await visitorCountry().then(pickDonateLink);
+  const session = await auth();
+  const guestViewerId = session?.user ? null : await getViewerId();
 
   if (!stats || stats.watchedMinutes === 0) {
     return (
@@ -152,6 +157,12 @@ export default async function WrappedPage({
             }}
           />
         </div>
+
+        {/* Гость только что увидел свои часы — им же и напоминаем, что все
+            эти цифры живут в куке и пропадут вместе с ней. */}
+        {guestViewerId && (
+          <GuestBanner next="/wrapped" weight={await getGuestListWeight(guestViewerId)} />
+        )}
 
         {/* Момент, когда человек только что увидел свои часы, — единственный,
             где просьба о поддержке звучит уместно, а не назойливо. Без ссылки

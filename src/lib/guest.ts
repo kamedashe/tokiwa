@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { remainingMinutes, totalMinutes } from "@/lib/backlog";
 
 /**
  * Гостевой список: считать время можно без регистрации.
@@ -58,6 +59,32 @@ export async function getActorId(): Promise<string> {
   });
 
   return guest.id;
+}
+
+/**
+ * Сколько накоплено в гостевом списке. Абстрактное «список живёт в браузере»
+ * человека не трогает, а «47 тайтлов и 312 часов пропадут» — трогает: он
+ * видит цену потери, а не общее предупреждение.
+ */
+export async function getGuestListWeight(
+  viewerId: string,
+): Promise<{ titles: number; minutes: number }> {
+  const entries = await prisma.watchlistEntry.findMany({
+    where: { userId: viewerId },
+    select: {
+      status: true,
+      progress: true,
+      title: { select: { episodesCount: true, durationMin: true, format: true } },
+    },
+  });
+
+  let minutes = 0;
+  for (const e of entries) {
+    minutes +=
+      e.status === "watching" ? remainingMinutes(e.title, e.progress) : totalMinutes(e.title);
+  }
+
+  return { titles: entries.length, minutes };
 }
 
 /**

@@ -7,6 +7,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { AnimeCard } from "@/components/anime-card";
 import { GuestBanner } from "@/components/guest-banner";
+import { getViewerId, getGuestListWeight } from "@/lib/guest";
 import { auth } from "@/auth";
 import { getBacklogStats, getFitting, type BacklogItem } from "@/lib/backlog-queries";
 import { TIME_BUDGETS, budgetMinutes, formatDuration, paceEstimate } from "@/lib/backlog";
@@ -45,6 +46,7 @@ export default async function BacklogPage({
   // Математика времени открыта и гостям — это главная фича сайта,
   // прятать её за регистрацией значит терять людей на пороге.
   const session = await auth();
+  const guestViewerId = session?.user ? null : await getViewerId();
 
   const [{ budget: budgetKey }, { locale }] = await Promise.all([searchParams, params]);
   const t = await getTranslations("backlog");
@@ -86,9 +88,13 @@ export default async function BacklogPage({
           {wrapped("menu")} →
         </Link>
 
-        {/* Гостю с непустым списком напоминаем, что список стоит сохранить. */}
+        {/* Гостю с непустым списком напоминаем, что список стоит сохранить —
+            с конкретным весом: цифры человек только что увидел сам. */}
         {!session?.user && totalAhead + stats.completedCount > 0 && (
-          <GuestBanner next="/backlog" />
+          <GuestBanner
+            next="/backlog"
+            weight={guestViewerId ? await getGuestListWeight(guestViewerId) : undefined}
+          />
         )}
 
         {totalAhead === 0 && stats.completedCount === 0 ? (

@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
 import { GuestBanner } from "@/components/guest-banner";
+import { getViewerId, getGuestListWeight } from "@/lib/guest";
 import { StartWatchingButton } from "@/components/start-watching-button";
 import { FeedbackNudge } from "@/components/feedback-nudge";
 import { TelegramConnect } from "@/components/telegram-connect";
@@ -36,6 +37,7 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
   };
 
   const session = await auth();
+  const viewerId = session?.user ? null : await getViewerId();
 
   const [newEpisodes, plannedAiring] = await Promise.all([
     getNewEpisodes(locale),
@@ -111,8 +113,15 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
           </span>
         </div>
 
-        {/* Гость с непустым списком — самое время предложить его сохранить. */}
-        {!session?.user && <GuestBanner next="/my" />}
+        {/* Гость с непустым списком — самое время предложить его сохранить.
+            С весом списка: «столько-то тайтлов и часов пропадут» убеждает
+            сильнее, чем абстрактное «кука ненадёжна». */}
+        {!session?.user && (
+          <GuestBanner
+            next="/my"
+            weight={viewerId ? await getGuestListWeight(viewerId) : undefined}
+          />
+        )}
 
         {/* Причины возвращаться: у «смотрю» вышли новые серии, а из
             «запланировано» что-то уже начало выходить. */}
