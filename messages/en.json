@@ -107,7 +107,15 @@
     "tgUnlink": "Disconnect",
     "guestEpisodesNudge": "With an account you'd get this by email on release day",
     "guestEpisodesCta": "Turn on notifications",
-    "startWatching": "→ Watching"
+    "startWatching": "→ Watching",
+    "pushTitle": "New episode notifications",
+    "pushText": "They arrive right on your device when an episode from your watching list airs. No account needed.",
+    "pushEnable": "Enable notifications",
+    "pushEnabled": "Notifications on",
+    "pushDisable": "Turn off",
+    "pushBlocked": "Notifications are blocked in your browser settings — allow them for this site and try again.",
+    "pushIosHint": "On iPhone notifications only work if you add TokiWa to your Home Screen and open it from there.",
+    "pushWorking": "Enabling…"
   },
   "backlog": {
     "title": "How much time I have",

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { SITE_URL } from "@/lib/seo";
 import { sendTelegramMessage, telegramEnabled } from "@/lib/telegram";
 import { sendEmail, emailEnabled } from "@/lib/email";
+import { sendPush, pushEnabled } from "@/lib/push";
 import { unsubscribeUrl } from "@/lib/unsubscribe";
 import { FALLBACK_DURATION_MIN } from "@/lib/backlog";
 
@@ -30,7 +31,8 @@ interface FreshEntry {
  * коде, объёмы копеечные.
  */
 export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: number } = {}) {
-  if (!telegramEnabled() && !emailEnabled()) return { tg: 0, mail: 0, skipped: "disabled" as const };
+  if (!telegramEnabled() && !emailEnabled() && !pushEnabled())
+    return { tg: 0, mail: 0, push: 0, skipped: "disabled" as const };
 
   const deadline = Date.now() + budgetMs;
 
@@ -47,8 +49,8 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
         // 28.07.2026 люди получили письма про 366-ю серию Блича.
         status: "releasing",
       },
-      // Гостям слать некуда — почты нет; их пропускаем ещё в запросе.
-      user: { isGuest: false },
+      // Гостей больше не отсекаем: почты у них нет, но пуш в браузер есть —
+      // для них это единственный способ узнать о новой серии.
     },
     select: {
       id: true,
@@ -62,7 +64,9 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
         select: {
           email: true,
           emailNotifications: true,
+          isGuest: true,
           telegramLink: { select: { chatId: true } },
+          _count: { select: { pushSubs: true } },
         },
       },
     },
@@ -71,7 +75,7 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
   // Группируем свежие серии по получателям.
   const byUser = new Map<
     string,
-    { chatId: bigint | null; email: string | null; fresh: FreshEntry[] }
+    { chatId: bigint | null; email: string | null; canPush: boolean; fresh: FreshEntry[] }
   >();
 
   for (const e of entries) {
@@ -79,10 +83,17 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
     if (aired <= e.progress || aired <= e.notifiedEpisode) continue;
 
     const chatId = e.user.telegramLink?.chatId ?? null;
-    const canMail = emailEnabled() && e.user.emailNotifications && Boolean(e.user.email);
-    if (!chatId && !canMail) continue;
+    const canMail =
+      emailEnabled() && !e.user.isGuest && e.user.emailNotifications && Boolean(e.user.email);
+    const canPush = pushEnabled() && e.user._count.pushSubs > 0;
+    if (!chatId && !canMail && !canPush) continue;
 
-    const box = byUser.get(e.userId) ?? { chatId, email: e.user.email, fresh: [] };
+    const box = byUser.get(e.userId) ?? {
+      chatId,
+      email: e.user.email,
+      canPush,
+      fresh: [],
+    };
     box.fresh.push({
       id: e.id,
       progress: e.progress,
@@ -96,14 +107,35 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
 
   let tg = 0;
   let mail = 0;
+  let push = 0;
 
-  for (const [userId, { chatId, email, fresh }] of byUser) {
+  for (const [userId, { chatId, email, canPush, fresh }] of byUser) {
     if (Date.now() > deadline) break;
 
-    const ok = chatId ? await sendTelegram(chatId, fresh) : await sendMail(userId, email!, fresh);
+    // Пуш идёт всегда, когда подписка есть: он приходит на экран, а не в
+    // ящик, и не конкурирует с письмом, а дополняет его.
+    if (canPush) {
+      const delivered = await sendPush(userId, {
+        title: fresh.length === 1 ? fresh[0].name : "Вышли новые серии",
+        body:
+          fresh.length === 1
+            ? `Серия ${fresh[0].aired} · вы на ${fresh[0].progress}`
+            : `${fresh.length} ваших тайтлов`,
+        url: fresh.length === 1 ? `${SITE_URL}/anime/${fresh[0].slug}` : `${SITE_URL}/my`,
+        tag: fresh.length === 1 ? fresh[0].slug : "episodes",
+      });
+      if (delivered > 0) push++;
+    }
+
+    const ok = chatId
+      ? await sendTelegram(chatId, fresh)
+      : email
+        ? await sendMail(userId, email, fresh)
+        : canPush;
 
     if (ok) {
-      chatId ? tg++ : mail++;
+      if (chatId) tg++;
+      else if (email) mail++;
       // Отметки — только после успешной отправки, иначе уведомление потеряется.
       // Сырой SQL, а не update: Prisma при update освежает updatedAt, а на нём
       // строится статистика возвратов — системная отметка не «визит».
@@ -118,7 +150,7 @@ export async function notifyNewEpisodes({ budgetMs = 10_000 }: { budgetMs?: numb
     }
   }
 
-  return { tg, mail };
+  return { tg, mail, push };
 }
 
 function sendTelegram(chatId: bigint, fresh: FreshEntry[]): Promise<boolean> {

@@ -8,6 +8,9 @@ import { ImportList } from "@/components/import-list";
 import { GuestBanner } from "@/components/guest-banner";
 import { getViewerId, getGuestListWeight } from "@/lib/guest";
 import { StartWatchingButton } from "@/components/start-watching-button";
+import { PushToggle } from "@/components/push-toggle";
+import { pushEnabled } from "@/lib/push";
+import { hasPushSubscription } from "@/lib/push-actions";
 import { FeedbackNudge } from "@/components/feedback-nudge";
 import { TelegramConnect } from "@/components/telegram-connect";
 import { getMyList, getNewEpisodes, getPlannedAiring } from "@/lib/watchlist";
@@ -223,6 +226,25 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
 
       {/* Просьба о фидбеке — только у тех, кто реально ведёт список. */}
       <div className="mx-auto flex max-w-[720px] flex-col gap-3 px-4 pt-10 md:px-10">
+        {/* Пуши работают и для гостей: подписка живёт в браузере, как и их
+            список, — единственный канал возврата без регистрации. */}
+        {pushEnabled() && (
+          <PushToggle
+            vapidKey={process.env.VAPID_PUBLIC_KEY!}
+            initiallyOn={await hasPushSubscription()}
+            labels={{
+              title: t("pushTitle"),
+              text: t("pushText"),
+              enable: t("pushEnable"),
+              enabled: t("pushEnabled"),
+              disable: t("pushDisable"),
+              blocked: t("pushBlocked"),
+              iosHint: t("pushIosHint"),
+              working: t("pushWorking"),
+            }}
+          />
+        )}
+
         {telegramLinked !== null && (
           <TelegramConnect linked={telegramLinked} labels={tgLabels} />
         )}

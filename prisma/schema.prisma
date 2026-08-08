@@ -156,6 +156,7 @@ model User {
   watchlist    WatchlistEntry[]
   feedback     Feedback[]
   telegramLink TelegramLink?
+  pushSubs     PushSubscription[]
 
   createdAt DateTime @default(now())
 }
@@ -221,3 +222,28 @@ model WatchlistEntry {
   @@index([userId, status, updatedAt])
 }
 
+
+/// Подписка браузера на пуш-уведомления.
+///
+/// Ключевое: привязана к User, а гость у нас — тоже User (isGuest), поэтому
+/// пуши работают без регистрации. Это единственный канал возврата, доступный
+/// тем, кто аккаунт заводить не хочет: почты у них нет, а браузер есть.
+/// Одному человеку соответствует несколько подписок — по одной на устройство.
+model PushSubscription {
+  id       String @id @default(cuid())
+  userId   String
+  /// Адрес, по которому push-сервис браузера принимает уведомления.
+  endpoint String @unique
+  /// Ключи шифрования из подписки — без них сообщение не зашифровать.
+  p256dh   String
+  auth     String
+
+  /// Отвалившиеся подписки чистим по счётчику ошибок: браузер не сообщает
+  /// об отписке, узнаём только по отказу при отправке.
+  failures Int @default(0)
+
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

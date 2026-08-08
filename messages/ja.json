@@ -107,7 +107,15 @@
     "tgUnlink": "解除",
     "guestEpisodesNudge": "アカウントがあれば配信日にメールで届きます",
     "guestEpisodesCta": "通知をオンにする",
-    "startWatching": "→ 視聴中へ"
+    "startWatching": "→ 視聴中へ",
+    "pushTitle": "新エピソードの通知",
+    "pushText": "「視聴中」の作品が配信されると、端末に直接届きます。アカウントは不要です。",
+    "pushEnable": "通知をオンにする",
+    "pushEnabled": "通知はオンです",
+    "pushDisable": "オフにする",
+    "pushBlocked": "ブラウザの設定で通知がブロックされています。このサイトに許可してから再度お試しください。",
+    "pushIosHint": "iPhoneでは、TokiWaをホーム画面に追加してそこから開いた場合のみ通知が届きます。",
+    "pushWorking": "設定中…"
   },
   "backlog": {
     "title": "残り時間",

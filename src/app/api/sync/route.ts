@@ -91,6 +91,7 @@ async function run(request: Request) {
         ongoingUpdated: ongoing?.updated ?? 0,
         notifiedTg: notified.tg ?? 0,
         notifiedMail: notified.mail ?? 0,
+        notifiedPush: notified.push ?? 0,
         digestSent: digest?.sent ?? 0,
         postersUpgraded: posters?.upgraded ?? 0,
         posterCursor: posters?.cursor ?? null,
@@ -144,6 +145,7 @@ async function run(request: Request) {
       digestSent: digest?.sent ?? 0,
       notifiedTg: notified.tg ?? 0,
       notifiedMail: notified.mail ?? 0,
+      notifiedPush: notified.push ?? 0,
       shikimoriAdded: shikimori.added,
       nextPage: shikimori.nextPage,
     });
