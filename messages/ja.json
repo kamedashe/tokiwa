@@ -264,7 +264,13 @@
     "googleCta": "Googleでログイン",
     "otherWays": "その他の方法",
     "importNudgeTitle": "{added}作品はこのブラウザのCookieに保存されています",
-    "importNudgeText": "Googleで2クリック。インポートしたリストが永久に、どの端末でも使えます。"
+    "importNudgeText": "Googleで2クリック。インポートしたリストが永久に、どの端末でも使えます。",
+    "saveQuestion": "ブラウザを閉じてもこのリストを残したいですか？",
+    "answerYes": "はい",
+    "answerNo": "いいえ",
+    "answerMeh": "どちらでも",
+    "thanksYes": "ではGoogleで2クリック。リストは永久に残ります。",
+    "thanksNo": "了解しました。もう聞きません。"
   },
   "moods": {
     "title": "気分で選ぶ",

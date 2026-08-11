@@ -264,7 +264,13 @@
     "googleCta": "Sign in with Google",
     "otherWays": "other ways",
     "importNudgeTitle": "{added} titles currently live in this browser's cookie",
-    "importNudgeText": "Two clicks with Google and your imported list is yours for good, on any device."
+    "importNudgeText": "Two clicks with Google and your imported list is yours for good, on any device.",
+    "saveQuestion": "Want this list to survive after you close the browser?",
+    "answerYes": "Yes",
+    "answerNo": "No",
+    "answerMeh": "Don't care",
+    "thanksYes": "Then sign in with Google — two clicks and the list is yours for good.",
+    "thanksNo": "Got it, won't ask again."
   },
   "moods": {
     "title": "By mood",

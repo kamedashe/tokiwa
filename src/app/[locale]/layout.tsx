@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Manrope, Noto_Sans_JP, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { routing } from "@/i18n/routing";
+import { Clarity } from "@/components/clarity";
 import { InstallPrompt } from "@/components/install-prompt";
 import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
@@ -123,6 +124,7 @@ export default async function RootLayout({
           />
         </NextIntlClientProvider>
         <Analytics />
+        <Clarity />
       </body>
     </html>
   );

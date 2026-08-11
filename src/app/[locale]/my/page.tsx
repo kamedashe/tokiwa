@@ -6,6 +6,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { ImportList } from "@/components/import-list";
 import { GuestBanner } from "@/components/guest-banner";
+import { SavePoll } from "@/components/save-poll";
+import { getPollAnswer } from "@/lib/poll-actions";
+import { SAVE_POLL } from "@/lib/polls";
 import { getViewerId, getGuestListWeight } from "@/lib/guest";
 import { StartWatchingButton } from "@/components/start-watching-button";
 import { PushToggle } from "@/components/push-toggle";
@@ -41,6 +44,8 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
 
   const session = await auth();
   const viewerId = session?.user ? null : await getViewerId();
+  const guest = await getTranslations("guest");
+  const savePollAnswer = session?.user ? null : await getPollAnswer(SAVE_POLL);
 
   const [newEpisodes, plannedAiring] = await Promise.all([
     getNewEpisodes(locale),
@@ -120,15 +125,28 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
           </span>
         </div>
 
-        {/* Гость с непустым списком — самое время предложить его сохранить.
-            С весом списка: «столько-то тайтлов и часов пропадут» убеждает
-            сильнее, чем абстрактное «кука ненадёжна». */}
-        {!session?.user && (
-          <GuestBanner
-            next="/my"
-            weight={viewerId ? await getGuestListWeight(viewerId) : undefined}
-          />
-        )}
+        {/* Сначала спрашиваем, нужна ли сохранность вообще, и только тем, кто
+            ответил «да», показываем предложение войти. Сказавших «нет» больше
+            не трогаем — уважать ответ важнее ещё одного показа баннера. */}
+        {!session?.user &&
+          (savePollAnswer === null ? (
+            <SavePoll
+              labels={{
+                question: guest("saveQuestion"),
+                yes: guest("answerYes"),
+                no: guest("answerNo"),
+                meh: guest("answerMeh"),
+                thanksYes: guest("thanksYes"),
+                thanksNo: guest("thanksNo"),
+                googleCta: guest("googleCta"),
+              }}
+            />
+          ) : savePollAnswer === "yes" ? (
+            <GuestBanner
+              next="/my"
+              weight={viewerId ? await getGuestListWeight(viewerId) : undefined}
+            />
+          ) : null)}
 
         {/* Причины возвращаться: у «смотрю» вышли новые серии, а из
             «запланировано» что-то уже начало выходить. */}

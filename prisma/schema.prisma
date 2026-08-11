@@ -157,6 +157,7 @@ model User {
   feedback     Feedback[]
   telegramLink TelegramLink?
   pushSubs     PushSubscription[]
+  pollAnswers  PollAnswer[]
 
   createdAt DateTime @default(now())
 }
@@ -246,4 +247,26 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+/// Ответы на короткие опросы в интерфейсе.
+///
+/// Первый вопрос — нужна ли гостю сохранность списка. Спросить дешевле, чем
+/// гадать: три дня уговоров кнопками дали одну регистрацию на 35 гостей, и
+/// непонятно, дело в подаче или сохранность им просто не нужна. Ответ заодно
+/// решает, показывать ли человеку предложение войти.
+model PollAnswer {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Ключ вопроса — чтобы задавать новые, не заводя таблицу под каждый.
+  question String
+  answer   String
+
+  createdAt DateTime @default(now())
+
+  /// Один ответ на вопрос от человека.
+  @@unique([userId, question])
+  @@index([question, answer])
 }
