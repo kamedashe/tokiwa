@@ -81,7 +81,8 @@
     "similar": "Similar",
     "allEpisodes": "All episodes",
     "episodesHint": "Click a number to mark everything up to it. Click the last one again to unmark it.",
-    "hideEpisodes": "Collapse"
+    "hideEpisodes": "Collapse",
+    "totalLength": "Total length:"
   },
   "status": {
     "watching": "Watching",

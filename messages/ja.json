@@ -81,7 +81,8 @@
     "similar": "似ている作品",
     "allEpisodes": "全エピソード",
     "episodesHint": "番号をクリックすると、そこまで視聴済みになります。最後の話をもう一度クリックすると解除。",
-    "hideEpisodes": "折りたたむ"
+    "hideEpisodes": "折りたたむ",
+    "totalLength": "総再生時間："
   },
   "status": {
     "watching": "見ている",
