@@ -6,20 +6,18 @@ import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { Artwork } from "@/components/artwork";
-import { ProgressStepper } from "@/components/progress-stepper";
-import { WatchlistButton } from "@/components/watchlist-button";
-import { StatusPicker } from "@/components/status-picker";
+import { TitleListActions, TitleProgress } from "@/components/title-actions";
 import { AnimeCard } from "@/components/anime-card";
 import { prisma } from "@/lib/prisma";
 import { getNearby, type CardTitle } from "@/lib/queries";
-import { getEntry } from "@/lib/watchlist";
-import { formatDuration, remainingMinutes } from "@/lib/backlog";
+import { formatDuration, totalMinutes } from "@/lib/backlog";
 import { pickTitle } from "@/lib/title-locale";
 import { localeAlternates } from "@/lib/seo";
 import { animeJsonLd, serializeJsonLd } from "@/lib/structured-data";
 
-// Страница показывает статус тайтла у текущего пользователя.
-export const dynamic = "force-dynamic";
+// Страница публичная и одинаковая для всех: личный статус подтягивают
+// клиентские блоки. Перерисовываем раз в час — данные о сериях меняет крон.
+export const revalidate = 3600;
 
 const STATUS_KEYS: Record<string, string> = {
   releasing: "statusReleasing",
@@ -71,10 +69,10 @@ export default async function TitlePage({
 
   const names = pickTitle(title, locale);
 
-  const entry = await getEntry(title.id);
   const time = await getTranslations("time");
-  const timeLeft = remainingMinutes(title, entry?.progress ?? 0);
   const nearby = await getNearby(title.id, locale);
+
+  const fullLength = totalMinutes(title);
 
   const meta = [
     title.format,
@@ -113,14 +111,7 @@ export default async function TitlePage({
             </div>
           )}
 
-          <div className="mt-5 flex flex-col gap-3">
-            <WatchlistButton
-              titleId={title.id}
-              initialInList={entry !== null}
-              className="w-full !py-2.5 !text-[14px]"
-            />
-            <StatusPicker titleId={title.id} initialStatus={entry?.status ?? null} />
-          </div>
+          <TitleListActions titleId={title.id} />
 
           <div className="mt-5 flex flex-wrap gap-2">
             {title.genres.map((g) => (
@@ -171,15 +162,13 @@ export default async function TitlePage({
             <h2 className="mb-4 font-display text-[21px] font-semibold tracking-[-0.02em]">
               {t("progress")}
             </h2>
-            <ProgressStepper
-              titleId={title.id}
-              initialProgress={entry?.progress ?? 0}
-              episodesCount={title.episodesCount}
-            />
-            {timeLeft > 0 && (
+            <TitleProgress titleId={title.id} episodesCount={title.episodesCount} />
+            {/* Полная длительность вместо «осталось досмотреть»: остаток
+                зависит от прогресса, а он теперь известен только браузеру. */}
+            {fullLength > 0 && (
               <p className="mt-4 text-[13px] text-subtle">
-                {t("timeLeft")}{" "}
-                <span className="text-accent">{formatDuration(time, timeLeft)}</span>
+                {t("totalLength")}{" "}
+                <span className="text-accent">{formatDuration(time, fullLength)}</span>
               </p>
             )}
           </section>

@@ -9,7 +9,9 @@ import { listTitles } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
 import { localeAlternates } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+// Публичная страница, одинаковая для всех: отдаётся из кэша, чтобы
+// обходы роботов не били в базу. Обновляется раз в час.
+export const revalidate = 3600;
 
 async function getGenre(slug: string) {
   return prisma.genre.findUnique({ where: { slug }, select: { name: true, slug: true } });

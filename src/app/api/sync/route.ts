@@ -76,13 +76,10 @@ async function run(request: Request) {
         ? await sendWeeklyDigests({ budgetMs: 18_000 })
         : null;
 
-      // Остатком добираем обложки: связи в каталоге почти достроены, и этот
-      // прогон всё равно простаивает. Третий крон завести нельзя — на
-      // бесплатном тарифе их всего два, оба заняты.
-      const posterBudget = maxDuration * 1000 - (Date.now() - startedAt) - 5_000;
-      const posters =
-        posterBudget > 5_000 ? await upgradePosters({ budgetMs: posterBudget }) : null;
-
+      // Обложки из ночного прогона убраны: каталог уже подтянут (13 800 из
+      // 15 300 с AniList), а фоновый добор наравне с обходами роботов выбрал
+      // месячную квоту базы. Новым тайтлам обложка приходит сразу при
+      // добавлении; разово догнать остаток можно вручную — ?mode=posters.
       await markHomepagePicks();
       return NextResponse.json({
         ok: true,
@@ -93,8 +90,6 @@ async function run(request: Request) {
         notifiedMail: notified.mail ?? 0,
         notifiedPush: notified.push ?? 0,
         digestSent: digest?.sent ?? 0,
-        postersUpgraded: posters?.upgraded ?? 0,
-        posterCursor: posters?.cursor ?? null,
       });
     }
 

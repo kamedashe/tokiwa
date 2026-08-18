@@ -9,7 +9,9 @@ import { TitleGrid } from "@/components/title-grid";
 import { isSeasonKey, listTitles, seasonLabel } from "@/lib/queries";
 import { localeAlternates } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+// Публичная страница, одинаковая для всех: отдаётся из кэша, чтобы
+// обходы роботов не били в базу. Обновляется раз в час.
+export const revalidate = 3600;
 
 /** Отсекаем мусор в адресе до похода в базу. */
 function parse(year: string, season: string) {

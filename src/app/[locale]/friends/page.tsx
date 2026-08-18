@@ -6,8 +6,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { TelegramIcon } from "@/components/telegram-icon";
 import { localeAlternates } from "@/lib/seo";
 
-// Шапка показывает профиль текущего пользователя.
-export const dynamic = "force-dynamic";
+// Публичная страница, одинаковая для всех: отдаётся из кэша, чтобы
+// обходы роботов не били в базу. Обновляется раз в сутки.
+export const revalidate = 86400;
 
 type TagKey = "edits" | "arts" | "club" | "manga" | "picks" | "memes";
 

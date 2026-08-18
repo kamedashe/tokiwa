@@ -15,7 +15,9 @@
     "db:related": "tsx scripts/sync-related.ts",
     "feedback": "tsx scripts/read-feedback.ts",
     "stats": "tsx scripts/stats.ts",
-    "supporter": "tsx scripts/supporter.ts"
+    "supporter": "tsx scripts/supporter.ts",
+    "backup": "tsx scripts/backup.ts",
+    "restore": "tsx scripts/restore.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

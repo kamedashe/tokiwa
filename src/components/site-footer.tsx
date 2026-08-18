@@ -1,7 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { pickDonateLink } from "@/lib/donate";
-import { visitorCountry } from "@/lib/geo";
 import { TelegramIcon } from "@/components/telegram-icon";
 import { TELEGRAM_URL } from "@/lib/seo";
 
@@ -9,15 +7,14 @@ import { TELEGRAM_URL } from "@/lib/seo";
  * Подвал. Нужен в основном ради ссылки на политику конфиденциальности —
  * Google требует, чтобы она была доступна с сайта, а не только из формы входа.
  *
- * Ссылка на донат появляется сама, если задан DONATE_BOOSTY_URL или
- * DONATE_KOFI_URL — без них здесь просто пусто, ничего не ломается.
+ * Страну посетителя здесь больше не определяем: чтение заголовков запроса
+ * делало динамической каждую страницу сайта, ведь подвал есть везде. Ссылка
+ * ведёт на /support, а нужную платёжку выбирает уже она.
  */
 export async function SiteFooter() {
   const t = await getTranslations("footer");
   const nav = await getTranslations("nav");
   const upd = await getTranslations("updates");
-  const country = await visitorCountry();
-  const donate = pickDonateLink(country);
 
   return (
     <footer className="border-t border-hairline px-4 py-8 md:px-10">

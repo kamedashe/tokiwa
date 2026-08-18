@@ -126,15 +126,15 @@ export function UserMenuDropdown({
           </Link>
 
           {donateUrl && (
-            <a
+            // Ссылка ведёт на свою страницу поддержки, а не сразу на платёжку:
+            // Link, а не <a>, чтобы работал клиентский переход и локали.
+            <Link
               href={donateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               onClick={() => setOpen(false)}
               className="block px-4 py-2.5 text-[13px] text-accent hover:text-accent-soft"
             >
               ♥ {labels.support}
-            </a>
+            </Link>
           )}
 
           <form action={signOutAction}>

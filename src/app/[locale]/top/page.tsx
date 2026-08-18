@@ -7,8 +7,9 @@ import { getTranslations } from "next-intl/server";
 import { listTitles } from "@/lib/queries";
 import { localeAlternates } from "@/lib/seo";
 
-// Шапка показывает профиль текущего пользователя.
-export const dynamic = "force-dynamic";
+// Публичная страница, одинаковая для всех: отдаётся из кэша, чтобы
+// обходы роботов не били в базу. Обновляется раз в час.
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
