@@ -45,16 +45,30 @@ export async function toggleWatchlist(titleId: number) {
 export async function setStatus(titleId: number, status: string) {
   const userId = await getActorId();
 
+  // «Посмотрел» означает, что серии кончились — проставляем полный прогресс.
+  // Иначе счётчик застревает на старом месте, и время в бэклоге считается
+  // так, будто тайтл недосмотрен: человек отметил статус, а сайт продолжает
+  // обещать ему часы, которых уже нет.
+  let progress: number | undefined;
+  if (status === "completed") {
+    const title = await prisma.title.findUnique({
+      where: { id: titleId },
+      select: { episodesCount: true, format: true },
+    });
+    // У фильмов серий нет — там достаточно единицы, чтобы «начато» не путалось.
+    progress = title?.format === "Movie" ? 1 : (title?.episodesCount ?? undefined);
+  }
+
   await prisma.watchlistEntry.upsert({
     where: { userId_titleId: { userId, titleId } },
-    create: { userId, titleId, status },
-    update: { status },
+    create: { userId, titleId, status, ...(progress ? { progress } : {}) },
+    update: { status, ...(progress ? { progress } : {}) },
   });
 
   revalidatePath("/");
   revalidatePath("/my");
 
-  return { ok: true as const, status };
+  return { ok: true as const, status, progress: progress ?? null };
 }
 
 /** Запоминает, на какой серии остановились. */
