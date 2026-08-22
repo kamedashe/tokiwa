@@ -5,6 +5,7 @@ import { getEntry } from "@/lib/watchlist";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { StatusPicker } from "@/components/status-picker";
 import { ProgressStepper } from "@/components/progress-stepper";
+import { ENTRY_CHANGED, type EntryChangedDetail } from "@/lib/entry-events";
 
 /**
  * Личное состояние тайтла (в списке ли он, какой статус, сколько серий
@@ -32,8 +33,19 @@ function useEntry(titleId: number) {
       .then((data) => !cancelled && setEntry(data))
       .catch(() => !cancelled && setEntry(null));
 
+    // Соседний блок мог поменять запись — например, статус «посмотрел»
+    // проставляет полный прогресс. Подхватываем, не дожидаясь перезагрузки.
+    const onChanged = (e: Event) => {
+      const detail = (e as CustomEvent<EntryChangedDetail>).detail;
+      if (detail?.titleId !== titleId) return;
+      setEntry((prev) => ({ status: prev?.status ?? "completed", progress: detail.progress }));
+    };
+
+    window.addEventListener(ENTRY_CHANGED, onChanged);
+
     return () => {
       cancelled = true;
+      window.removeEventListener(ENTRY_CHANGED, onChanged);
     };
   }, [titleId]);
 

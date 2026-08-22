@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useState, useTransition } from "react";
 import { setStatus } from "@/lib/watchlist";
 import { STATUS_ORDER } from "@/lib/watch-status";
+import { ENTRY_CHANGED } from "@/lib/entry-events";
 
 /** Выбор статуса на странице тайтла: смотрю / запланировано / посмотрел / брошено. */
 export function StatusPicker({
@@ -30,6 +31,15 @@ export function StatusPicker({
         setCurrent(previous);
         router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`);
         return;
+      }
+
+      // «Посмотрел» проставляет полный прогресс на сервере — счётчик серий
+      // стоит в другой части страницы и сам об этом не узнает, поэтому
+      // сообщаем ему напрямую.
+      if (result.progress != null) {
+        window.dispatchEvent(
+          new CustomEvent(ENTRY_CHANGED, { detail: { titleId, progress: result.progress } }),
+        );
       }
 
       router.refresh();
