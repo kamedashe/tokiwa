@@ -12,8 +12,7 @@
  * похожие по сути, а не по названию.
  */
 import { prisma } from "../src/lib/prisma";
-
-type Row = { id: number; title: string; titleRu: string | null; year: number | null; format: string | null; distance: number };
+import { similarTo, TONE_WEIGHT } from "../src/lib/semantic-search";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -58,22 +57,15 @@ async function main() {
       "\n",
   );
 
-  // <=> — косинусное расстояние. Подзапрос отдаёт вектор образца; сам образец
-  // и его франшиза исключены списком, иначе он первый с расстоянием 0, а за
-  // ним идут его же сиквелы.
-  const rows = await prisma.$queryRaw<Row[]>`
-    SELECT id, title, "titleRu", year, format,
-           "embedding" <=> (SELECT "embedding" FROM "Title" WHERE id = ${source.id}) AS distance
-    FROM "Title"
-    WHERE "embedding" IS NOT NULL AND id <> ALL(${excluded}::int[])
-    ORDER BY distance
-    LIMIT ${limit}`;
+  const rows = await similarTo(source.id, limit, franchise.map((r) => r.id));
 
   for (const [i, r] of rows.entries()) {
     const name = r.titleRu ?? r.title;
     const facts = [r.format, r.year].filter(Boolean).join(" ");
+    const tone = r.distanceTone === null ? "  —  " : (1 - r.distanceTone).toFixed(3);
     console.log(
-      `${String(i + 1).padStart(2)}. ${(1 - r.distance).toFixed(3)}  ${name}${facts ? `  (${facts})` : ""}`,
+      `${String(i + 1).padStart(2)}. ${(1 - r.distance).toFixed(3)}  ` +
+        `[сюжет ${(1 - r.distancePlot).toFixed(3)} · тон ${tone}]  ${name}${facts ? `  (${facts})` : ""}`,
     );
   }
 }
