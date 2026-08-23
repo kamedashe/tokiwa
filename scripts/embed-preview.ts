@@ -6,13 +6,20 @@
  *   npx tsx scripts/embed-preview.ts --random 3
  */
 import { prisma } from "../src/lib/prisma";
-import { buildEmbeddingText, cleanSynopsis, EMBEDDING_VERSION } from "../src/lib/embedding-text";
+import {
+  buildEmbeddingText,
+  buildTwoTexts,
+  cleanSynopsis,
+  EMBEDDING_VERSION,
+  IS_TWO_VECTOR,
+} from "../src/lib/embedding-text";
 
 const SELECT = {
   id: true, title: true, titleRu: true, titleJp: true, synopsis: true,
   year: true, format: true, status: true, episodesCount: true,
   genres: { select: { name: true } },
   tags: { select: { name: true, nameRu: true, kind: true } },
+  aniTags: { select: { rank: true, tag: { select: { name: true, category: true } } } },
 } as const;
 
 async function main() {
@@ -45,10 +52,29 @@ async function main() {
   }
 
   for (const t of titles) {
-    const text = buildEmbeddingText(t);
-    console.log(`\n${"=".repeat(70)}\n${t.titleRu ?? t.title}  [состав ${EMBEDDING_VERSION}]\n${"=".repeat(70)}`);
-    console.log(text);
-    console.log(`\n— символов: ${text.length}, вырезано чисткой: ${(t.synopsis?.length ?? 0) - cleanSynopsis(t.synopsis).length}`);
+    const line = "=".repeat(70);
+    console.log(`
+${line}
+${t.titleRu ?? t.title}  [состав ${EMBEDDING_VERSION}]
+${line}`);
+
+    if (IS_TWO_VECTOR) {
+      // Два текста печатаем раздельно и в том же порядке, в каком они едут в
+      // свои колонки, — чтобы видеть, что именно попало в каждый вектор.
+      const { tone, plot } = buildTwoTexts(t);
+      console.log(`--- тон (${tone.length} символов)`);
+      console.log(tone || "(пусто — нет ни одной метки)");
+      console.log(`
+--- сюжет (${plot.length} символов)`);
+      console.log(plot);
+    } else {
+      const text = buildEmbeddingText(t);
+      console.log(text);
+      console.log(`
+— символов: ${text.length}`);
+    }
+
+    console.log(`— вырезано чисткой: ${(t.synopsis?.length ?? 0) - cleanSynopsis(t.synopsis).length}`);
   }
 }
 

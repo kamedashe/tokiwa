@@ -14,6 +14,7 @@
     "db:seed-shikimori": "tsx scripts/sync-shikimori.ts",
     "db:related": "tsx scripts/sync-related.ts",
     "db:tags": "tsx scripts/sync-tags.ts",
+    "db:anitags": "tsx scripts/sync-anilist-tags.ts",
     "db:compact": "tsx scripts/db-compact.ts",
     "feedback": "tsx scripts/read-feedback.ts",
     "stats": "tsx scripts/stats.ts",
