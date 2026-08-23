@@ -21,6 +21,41 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-08-23",
+    ru: {
+      title: "Уровни на странице итогов",
+      text: "Часы просмотра теперь превращаются в уровень — от «Новичка» до «Легенды», — и показывают, сколько осталось до следующего. Рядом часы переведены в понятное: полнометражки, рабочие недели или месяцы подряд.",
+    },
+    en: {
+      title: "Levels on your stats page",
+      text: "Watched hours now turn into a level, from Novice to Legend, with progress to the next one. Next to it, hours are translated into something you can picture: feature films, work weeks or months straight.",
+    },
+    href: "/wrapped",
+  },
+  {
+    date: "2026-08-23",
+    ru: {
+      title: "Список можно скачать файлом",
+      text: "Кнопка «Скачать списком» на странице списка отдаёт таблицу со всеми тайтлами, статусами и прогрессом. Там же теперь видно, где список хранится: в браузере или в аккаунте.",
+    },
+    en: {
+      title: "Download your list as a file",
+      text: "The “Download as file” button on your list page gives you a table with every title, status and progress. The same line now shows where the list is kept: in this browser or in your account.",
+    },
+    href: "/my",
+  },
+  {
+    date: "2026-08-23",
+    ru: {
+      title: "«Посмотрел» отмечает все серии сразу",
+      text: "Раньше статус менялся, а счётчик серий оставался на месте — и время в бэклоге считалось так, будто тайтл недосмотрен.",
+    },
+    en: {
+      title: "“Completed” now marks every episode",
+      text: "The status used to change while the episode counter stayed put, so your backlog kept counting hours you had already watched.",
+    },
+  },
+  {
     date: "2026-08-03",
     ru: {
       title: "TokiWa ставится как приложение",

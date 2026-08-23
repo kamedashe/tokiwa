@@ -116,7 +116,10 @@
     "pushDisable": "Turn off",
     "pushBlocked": "Notifications are blocked in your browser settings — allow them for this site and try again.",
     "pushIosHint": "On iPhone notifications only work if you add TokiWa to your Home Screen and open it from there.",
-    "pushWorking": "Enabling…"
+    "pushWorking": "Enabling…",
+    "storageGuest": "This list lives in this browser only",
+    "storageAccount": "List saved to your account",
+    "exportList": "Download as file"
   },
   "backlog": {
     "title": "How much time I have",
@@ -253,7 +256,19 @@
     "shareFailed": "Didn't work. Try again.",
     "supportTitle": "Free to use, no ads",
     "supportText": "TokiWa is built by one person. If these numbers were fun, you can support the project — it keeps it running.",
-    "supportCta": "Support"
+    "supportCta": "Support",
+    "tierTitle": "Your level",
+    "novice": "Novice",
+    "viewer": "Viewer",
+    "fan": "Fan",
+    "veteran": "Veteran",
+    "marathoner": "Marathoner",
+    "legend": "Legend",
+    "toNext": "{hours} h to reach “{tier}”",
+    "maxTier": "Nowhere higher — this is the top",
+    "movies": "≈ {value} feature films back to back",
+    "workWeeks": "≈ {value} work weeks of 40 hours",
+    "months": "≈ {value} months of non-stop watching"
   },
   "guest": {
     "saveTitle": "Keep your list on every device",

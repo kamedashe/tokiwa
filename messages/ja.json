@@ -116,7 +116,10 @@
     "pushDisable": "オフにする",
     "pushBlocked": "ブラウザの設定で通知がブロックされています。このサイトに許可してから再度お試しください。",
     "pushIosHint": "iPhoneでは、TokiWaをホーム画面に追加してそこから開いた場合のみ通知が届きます。",
-    "pushWorking": "設定中…"
+    "pushWorking": "設定中…",
+    "storageGuest": "リストはこのブラウザのみに保存",
+    "storageAccount": "リストはアカウントに保存済み",
+    "exportList": "ファイルで保存"
   },
   "backlog": {
     "title": "残り時間",
@@ -253,7 +256,19 @@
     "shareFailed": "失敗しました。もう一度お試しください。",
     "supportTitle": "無料・広告なし",
     "supportText": "TokiWaは一人で作っています。数字が面白かったら、プロジェクトを支援していただけると続けられます。",
-    "supportCta": "支援する"
+    "supportCta": "支援する",
+    "tierTitle": "あなたのレベル",
+    "novice": "初心者",
+    "viewer": "視聴者",
+    "fan": "ファン",
+    "veteran": "ベテラン",
+    "marathoner": "マラソナー",
+    "legend": "レジェンド",
+    "toNext": "「{tier}」まであと{hours}時間",
+    "maxTier": "これ以上はありません。最高位です",
+    "movies": "劇場版およそ{value}本分",
+    "workWeeks": "週40時間の労働およそ{value}週間分",
+    "months": "ぶっ通しでおよそ{value}か月分"
   },
   "guest": {
     "saveTitle": "リストをすべての端末で",

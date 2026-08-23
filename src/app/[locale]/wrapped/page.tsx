@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ShareStats } from "@/components/share-stats";
 import { getWrappedStats } from "@/lib/wrapped-queries";
 import { formatDuration } from "@/lib/backlog";
+import { getTier, pickComparison } from "@/lib/tiers";
 import { pickDonateLink } from "@/lib/donate";
 import { visitorCountry } from "@/lib/geo";
 import { auth } from "@/auth";
@@ -63,6 +64,9 @@ export default async function WrappedPage({
 
   const shareText = t("shareText", { hours, days, genres: genreNames || "—" });
 
+  const tier = getTier(stats.watchedMinutes);
+  const comparison = pickComparison(stats.watchedMinutes);
+
   return (
     <main className="min-h-screen">
       <SiteHeader />
@@ -81,6 +85,42 @@ export default async function WrappedPage({
           </div>
           {days >= 1 && (
             <div className="mt-2 text-[15px] text-muted">{t("daysOfLife", { days })}</div>
+          )}
+          {/* Часы сами по себе абстрактны — рядом та же величина в том, что
+              человек может себе представить. */}
+          {comparison && (
+            <div className="mt-1 text-[13px] text-subtle">
+              {t(comparison.key, { value: comparison.value })}
+            </div>
+          )}
+        </div>
+
+        {/* Уровень по объёму просмотренного: то, что накоплено, названо
+            словом — так виднее, что этот список чего-то стоит. */}
+        <div className="mt-4 rounded-2xl border border-hairline bg-white/[0.02] p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <div>
+              <div className="font-display text-[11px] tracking-[0.14em] text-dim">
+                {t("tierTitle").toUpperCase()}
+              </div>
+              <div className="mt-1 font-display text-[22px] font-bold tracking-[-0.02em] text-accent">
+                {t(tier.current.key)}
+              </div>
+            </div>
+            <div className="text-[13px] text-subtle">
+              {tier.next
+                ? t("toNext", { tier: t(tier.next.key), hours: tier.hoursToNext })
+                : t("maxTier")}
+            </div>
+          </div>
+
+          {tier.next && (
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+              <div
+                className="h-full rounded-full bg-accent transition-[width] duration-500"
+                style={{ width: `${tier.percent}%` }}
+              />
+            </div>
           )}
         </div>
 
