@@ -59,6 +59,8 @@ model Title {
   durationMin Int?
 
   genres    Genre[]
+  /// Тематические метки с Shikimori — см. модель Tag.
+  tags      Tag[]
   watchlist WatchlistEntry[]
 
   /// Франшиза: сиквелы, приквелы, побочки и фильмы одного тайтла. Prisma
@@ -66,6 +68,30 @@ model Title {
   /// собирает обе стороны — заносим только в related, читаем из обеих.
   related   Title[] @relation("TitleRelations")
   relatedBy Title[] @relation("TitleRelations")
+
+  /// Когда последний раз тянули метки. null — ещё не ходили, поэтому обход
+  /// возобновляется с места остановки, как и у relatedSyncedAt.
+  tagsSyncedAt DateTime?
+
+  /// --- Смысловой поиск ---
+  ///
+  /// Вектор описания: 1024 измерения, модель voyage-4-lite, косинусная
+  /// близость. Тип vector Prisma не знает, поэтому поле помечено Unsupported —
+  /// в клиенте его нет, читаем и пишем через $queryRaw. Схеме оно всё равно
+  /// нужно: иначе migrate diff при следующей правке решит, что колонка лишняя,
+  /// и сгенерирует DROP COLUMN.
+  ///
+  /// Рядом с колонкой живёт hnsw-индекс Title_embedding_hnsw_idx, описать
+  /// который в схеме нельзя. Поэтому migrate diff считает его лишним и в
+  /// каждую новую миграцию подкладывает DROP INDEX — эту строку надо
+  /// вычищать руками перед тем, как класть SQL в migrations/.
+  embedding Unsupported("vector(1024)")?
+
+  /// Хеш текста, который ушёл в модель, вместе с версией состава эмбеддинга.
+  /// Прогон каталога считает хеш заново и трогает только те тайтлы, где он
+  /// разошёлся, — иначе каждая правка состава стоила бы полного перегона.
+  embeddingHash String?
+  embeddedAt    DateTime?
 
   /// Когда последний раз тянули метаданные из Jikan — чтобы не дёргать API зря.
   syncedAt DateTime?
@@ -85,6 +111,29 @@ model Title {
 model SyncState {
   key   String @id
   value Int
+}
+
+/// Тематические метки Shikimori: kind theme и demographic (Iyashikei, Gore,
+/// Time Travel, Isekai, Seinen) плюс жанры в свежем виде.
+///
+/// Почему отдельно от Genre, а не в него же: Genre питает публичные страницы
+/// /genre/<slug> и фильтры каталога, они же лежат в sitemap. Свалить туда
+/// «Gag Humor» — значит наплодить мусорных SEO-страниц. Здесь метки нужны
+/// ровно для одного: они несут тон, которого нет в синопсисе, и без них
+/// «что-нибудь тихое и грустное» ищется плохо.
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  /// Русское имя метки с Shikimori: «Iyashikei» → «Исцеляющее». Каталог и
+  /// запросы русские, и на днях подбора состава это готовый рычаг —
+  /// проверить, ищется ли лучше по-русски, не переобходя каталог заново.
+  nameRu String?
+  /// genre | theme | demographic — как их делит Shikimori.
+  kind String
+
+  titles Title[]
+
+  @@index([kind])
 }
 
 model Genre {
