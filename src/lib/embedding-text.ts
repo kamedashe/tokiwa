@@ -25,9 +25,8 @@
  */
 export const EMBEDDING_VERSION = process.env.EMBEDDING_VARIANT ?? "v3";
 
-/** Модель и размерность вектора. Размерность зашита в схему БД (vector(1024)). */
+/** Модель. Размерность и тип колонки живут в vector.ts. */
 export const EMBEDDING_MODEL = "voyage-4-lite";
-export const EMBEDDING_DIMENSIONS = 1024;
 
 /**
  * Разметка Shikimori. В текущем дампе её нет — описания уже чистые, — но
@@ -300,11 +299,72 @@ const VARIANTS: Record<string, (t: EmbeddableTitle) => string> = {
   },
 };
 
+/**
+ * Двухвекторные составы: тайтл описывается двумя текстами, каждый едет в свой
+ * вектор, а смешиваются они уже на запросе.
+ *
+ * Зачем: замеры v2–v5 показали, что один вектор обслуживает два разных
+ * запроса и вынужден выбирать. «Что-нибудь тихое и уютное» — про настроение,
+ * оно живёт в метках. «Детектив расследует убийства в городке» — про сюжет,
+ * он живёт в описании. Пока оба текста прессуются в один вектор, любая правка
+ * веса забирает у одного и отдаёт другому. Раздельно этого выбора нет:
+ * метки больше не тонут в пятистах символах синопсиса, потому что синопсиса
+ * рядом с ними нет вообще.
+ *
+ * t1 — первый заход: тон это голый список тем, сюжет это всё остальное.
+ * Повторять темы, как в v5, здесь незачем — в своём векторе им не с чем
+ * конкурировать.
+ */
+export const TWO_VECTOR_VARIANTS: Record<
+  string,
+  { tone: (t: EmbeddableTitle) => string; plot: (t: EmbeddableTitle) => string }
+> = {
+  t1: {
+    tone: (t) => themeWords(t).join(", "),
+    plot: (t) =>
+      assemble([nameLine(t), labeled("Формат", factParts(t)), cleanSynopsis(t.synopsis) || null]),
+  },
+
+  // t2 — исправление t1. Там темы были вычищены из сюжетного текста, и стало
+  // хуже: «Лагерь на свежем воздухе» на запросе «тихое и уютное» в составе v5
+  // стоял вторым, а в t1 исчез из выдачи вовсе. Причина в том, что вектор
+  // тона — грубый классификатор: различных текстов тона всего 5459 на 15583
+  // тайтла, и 39% тайтлов сидят в группах по десять и больше (в самой крупной,
+  // «Комедия», их 537). Внутри такой группы тон не различает ничего, порядок
+  // решает сюжет — а из сюжета мы темы как раз и выкинули.
+  //
+  // Здесь сюжетный текст остаётся полным, как в v3, а вектор тона только
+  // добавляет нажим. При весе 0 состав в точности повторяет v3.
+  t2: {
+    tone: (t) => themeWords(t).join(", "),
+    plot: (t) =>
+      assemble([
+        nameLine(t),
+        labeled("Жанры и темы", themeWords(t)),
+        labeled("Формат", factParts(t)),
+        cleanSynopsis(t.synopsis) || null,
+      ]),
+  },
+};
+
+/** Выбранный состав считает два вектора, а не один. */
+export const IS_TWO_VECTOR = EMBEDDING_VERSION in TWO_VECTOR_VARIANTS;
+
+/** Оба текста тайтла для двухвекторного состава. */
+export function buildTwoTexts(t: EmbeddableTitle): { tone: string; plot: string } {
+  const variant = TWO_VECTOR_VARIANTS[EMBEDDING_VERSION];
+  if (!variant) {
+    throw new Error(`состав «${EMBEDDING_VERSION}» не двухвекторный`);
+  }
+  return { tone: variant.tone(t), plot: variant.plot(t) };
+}
+
 /** Собирает текст, который уходит в модель, по выбранному составу. */
 export function buildEmbeddingText(t: EmbeddableTitle): string {
   const variant = VARIANTS[EMBEDDING_VERSION];
   if (!variant) {
-    throw new Error(`неизвестный состав «${EMBEDDING_VERSION}», есть: ${Object.keys(VARIANTS).join(", ")}`);
+    const all = [...Object.keys(VARIANTS), ...Object.keys(TWO_VECTOR_VARIANTS)].join(", ");
+    throw new Error(`неизвестный состав «${EMBEDDING_VERSION}», есть: ${all}`);
   }
   return variant(t);
 }

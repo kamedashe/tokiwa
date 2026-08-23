@@ -6,7 +6,8 @@
  * бесплатно, чего хватает примерно на 90 полных перегонов каталога. Это
  * важнее цены: подбор состава эмбеддинга — это и есть много перегонов подряд.
  */
-import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "./embedding-text";
+import { EMBEDDING_MODEL } from "./embedding-text";
+import { VECTOR_DIMENSIONS } from "./vector";
 
 const ENDPOINT = "https://api.voyageai.com/v1/embeddings";
 
@@ -59,7 +60,7 @@ async function embedBatch(texts: string[], inputType: InputType): Promise<number
         input: texts,
         model: EMBEDDING_MODEL,
         input_type: inputType,
-        output_dimension: EMBEDDING_DIMENSIONS,
+        output_dimension: VECTOR_DIMENSIONS,
       }),
     });
 
