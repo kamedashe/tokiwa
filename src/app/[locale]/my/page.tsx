@@ -118,11 +118,28 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
       <SiteHeader />
 
       <div className="px-4 pt-8 md:px-10">
-        <div className="mb-2 flex items-baseline gap-3">
+        <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">{t("title")}</h1>
           <span className="font-display text-xs tracking-[0.1em] text-dim">
             {c("titlesCount", { count: total })}
           </span>
+        </div>
+
+        {/* Где именно лежит список. Люди привыкли к приложениям и считают,
+            что данные «где-то сохранились сами»; про куку браузера они не
+            знают и узнают обычно уже потеряв список. Рядом — выгрузка
+            файлом: это честнее любых предупреждений, потому что не просит
+            поверить на слово, а отдаёт данные на руки. */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
+          <span className={session?.user ? "text-accent" : "text-subtle"}>
+            {session?.user ? `✓ ${t("storageAccount")}` : `⌛ ${t("storageGuest")}`}
+          </span>
+          <a
+            href={`/api/export?locale=${locale}`}
+            className="text-dim underline decoration-dotted underline-offset-2 transition-colors hover:text-foreground"
+          >
+            {t("exportList")}
+          </a>
         </div>
 
         {/* Сначала спрашиваем, нужна ли сохранность вообще, и только тем, кто
