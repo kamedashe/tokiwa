@@ -22,6 +22,7 @@
     "similar": "tsx scripts/similar.ts",
     "search": "tsx scripts/search.ts",
     "probe": "tsx scripts/probe.ts",
+    "compare": "tsx scripts/compare.ts",
     "backup": "tsx scripts/backup.ts",
     "restore": "tsx scripts/restore.ts"
   },

@@ -12,8 +12,18 @@
  * изменения ни на что не влияют.
  */
 
-/** Версия состава. Меняется вместе с buildEmbeddingText. */
-export const EMBEDDING_VERSION = "v2";
+/**
+ * Какой состав собираем. Варианты лежат рядом в VARIANTS, переключается
+ * переменной окружения — так проверка не требует правки кода и, главное,
+ * можно вернуться к предыдущему составу, чтобы перепроверить вывод:
+ *
+ *   EMBEDDING_VARIANT=v4 npm run embed
+ *
+ * Имя варианта попадает в embeddingHash и хранится в базе, поэтому смена
+ * варианта сама по себе означает полный перегон, а probe видит, вектора
+ * какого состава сейчас лежат.
+ */
+export const EMBEDDING_VERSION = process.env.EMBEDDING_VARIANT ?? "v3";
 
 /** Модель и размерность вектора. Размерность зашита в схему БД (vector(1024)). */
 export const EMBEDDING_MODEL = "voyage-4-lite";
@@ -108,6 +118,84 @@ export type EmbeddableTitle = {
 };
 
 /**
+ * Русские имена жанров.
+ *
+ * В Genre имена английские, а у меток с Shikimori есть русские (Tag.nameRu).
+ * Каталог и запросы русские, и держать в одной строке «Экшен» рядом с
+ * «Action» — значит тратить часть вектора на перевод вместо смысла.
+ *
+ * Таблица собрана по справочнику меток; девять последних — жанры, которые
+ * Shikimori из справочника убрал, поэтому переведены вручную.
+ */
+const GENRE_RU: Record<string, string> = {
+  "Action": "Экшен",
+  "Adventure": "Приключения",
+  "Award Winning": "Удостоено наград",
+  "Cars": "Автомобили",
+  "Comedy": "Комедия",
+  "Dementia": "Психоделика",
+  "Demons": "Демоны",
+  "Drama": "Драма",
+  "Ecchi": "Этти",
+  "Erotica": "Эротика",
+  "Fantasy": "Фэнтези",
+  "Game": "Игры",
+  "Girls Love": "Сёдзё-ай",
+  "Gourmet": "Гурман",
+  "Harem": "Гарем",
+  "Hentai": "Хентай",
+  "Historical": "Исторический",
+  "Horror": "Ужасы",
+  "Josei": "Дзёсей",
+  "Kids": "Детское",
+  "Martial Arts": "Боевые искусства",
+  "Mecha": "Меха",
+  "Military": "Военное",
+  "Music": "Музыка",
+  "Mystery": "Тайна",
+  "Parody": "Пародия",
+  "Police": "Полиция",
+  "Psychological": "Психологическое",
+  "Romance": "Романтика",
+  "Samurai": "Самураи",
+  "School": "Школа",
+  "Sci-Fi": "Фантастика",
+  "Seinen": "Сэйнэн",
+  "Shoujo": "Сёдзё",
+  "Shoujo Ai": "Сёдзё-ай",
+  "Shounen": "Сёнен",
+  "Shounen Ai": "Сёнэн-ай",
+  "Slice of Life": "Повседневность",
+  "Space": "Космос",
+  "Sports": "Спорт",
+  "Super Power": "Супер сила",
+  "Supernatural": "Сверхъестественное",
+  "Suspense": "Триллер",
+  "Thriller": "Триллер",
+  "Vampire": "Вампиры",
+  "Work Life": "Работа",
+  "Yaoi": "Яой",
+  "Yuri": "Юри",
+};
+
+/**
+ * Жанры и метки одним списком по-русски, без повторов.
+ *
+ * Метки идут первыми: их проставлял отдельный свежий прогон, тогда как Genre
+ * остался от старого синка. Жанр берём, только если метки с таким же именем
+ * у тайтла нет, — иначе одно слово попало бы дважды.
+ */
+function themeWords(t: EmbeddableTitle): string[] {
+  const tagNames = new Set(t.tags.map((x) => x.name));
+  return [
+    ...new Set([
+      ...t.tags.map((x) => x.nameRu ?? x.name),
+      ...t.genres.filter((g) => !tagNames.has(g.name)).map((g) => GENRE_RU[g.name] ?? g.name),
+    ]),
+  ];
+}
+
+/**
  * Собирает текст, который уходит в модель.
  *
  * v1 — намеренно простая база: названия, жанры, сухие факты, описание.
@@ -116,25 +204,107 @@ export type EmbeddableTitle = {
  * метках: Iyashikei, Gore, Survival. Без них запрос про настроение ищет по
  * пересказу сюжета и промахивается.
  *
- * Имена меток тут английские — ровно как жанры в v1. Это осознанно: между
- * v1 и v2 меняется одна вещь, наличие меток. Перевод имён на русский — это
- * отдельная проверка, и мешать её с этой нельзя, иначе непонятно, что
- * сработало (nameRu для неё уже лежит в базе).
+ * v3 — жанры и метки по-русски, а не по-английски.
+ *
+ * v2 дал меньше, чем ожидалось: перестановки в выдаче и сотые доли близости.
+ * Похоже, десяток английских слов через запятую весит слишком мало против
+ * пятисот символов русского синопсиса рядом. v3 проверяет первую половину
+ * догадки — язык; вторая половина, вес, остаётся на следующий заход.
  */
+/** Названия: русское, оригинальное, японское. */
+function nameLine(t: EmbeddableTitle): string {
+  return [t.titleRu, t.title, t.titleJp].filter(Boolean).join(" / ");
+}
+
+/** Сухие факты, которые вообще известны про тайтл. */
+function factParts(t: EmbeddableTitle): string[] {
+  return [t.format, t.year ? String(t.year) : null].filter((x): x is string => Boolean(x));
+}
+
+/** Жанры и метки английскими именами — как было в v1 и v2. */
+function englishWords(t: EmbeddableTitle, withTags: boolean): string[] {
+  return [...new Set([...t.genres.map((g) => g.name), ...(withTags ? t.tags.map((x) => x.name) : [])])];
+}
+
+/** Строка вида «Жанры и темы: ...» либо ничего, если перечислять нечего. */
+function labeled(label: string, values: string[]): string | null {
+  return values.length ? `${label}: ${values.join(", ")}` : null;
+}
+
+function assemble(parts: (string | null)[]): string {
+  return parts.filter((x): x is string => Boolean(x)).join("\n");
+}
+
+/**
+ * Составы. Каждый — отдельная проверка, и старые остаются рабочими, чтобы
+ * можно было вернуться и пересобрать вывод, а не верить записи в блокноте.
+ *
+ * v1  названия, жанры по-английски, факты, описание — исходная база.
+ * v2  плюс метки Shikimori, тоже по-английски.
+ * v3  жанры и метки по-русски.
+ * v4  только названия, темы и факты — описание выброшено.
+ * v5  всё как в v3, но строка тем повторена четыре раза.
+ *
+ * Что уже известно по замерам (npm run compare): v2 и v3 не дали ничего —
+ * порядка одного сменившегося тайтла из пяти и сотые доли балла. Значит,
+ * дело не в наличии меток и не в их языке.
+ *
+ * v4 — не кандидат в прод, а диагностика. Если без описания тон-запросы
+ * резко пойдут вверх, значит пятьсот символов синопсиса топят десяток слов
+ * рядом и работать надо с весом. Если не пойдут — метки бесполезны сами по
+ * себе, и искать надо другое.
+ */
+const VARIANTS: Record<string, (t: EmbeddableTitle) => string> = {
+  v1: (t) =>
+    assemble([
+      nameLine(t),
+      labeled("Жанры", englishWords(t, false)),
+      labeled("Формат", factParts(t)),
+      cleanSynopsis(t.synopsis) || null,
+    ]),
+
+  v2: (t) =>
+    assemble([
+      nameLine(t),
+      labeled("Жанры и темы", englishWords(t, true)),
+      labeled("Формат", factParts(t)),
+      cleanSynopsis(t.synopsis) || null,
+    ]),
+
+  v3: (t) =>
+    assemble([
+      nameLine(t),
+      labeled("Жанры и темы", themeWords(t)),
+      labeled("Формат", factParts(t)),
+      cleanSynopsis(t.synopsis) || null,
+    ]),
+
+  v4: (t) =>
+    assemble([nameLine(t), labeled("Жанры и темы", themeWords(t)), labeled("Формат", factParts(t))]),
+
+  // v5 — вторая диагностика, про вес. Модель усредняет токены, и десяток слов
+  // тем против полутора сотен токенов синопсиса весят процентов шесть. Здесь
+  // строка тем повторена четырежды — грубо, зато однозначно: если и так тон
+  // не сдвинется, вес не при чём и искать надо дальше.
+  v5: (t) => {
+    const themes = labeled("Жанры и темы", themeWords(t));
+    return assemble([
+      themes,
+      nameLine(t),
+      themes,
+      labeled("Формат", factParts(t)),
+      themes,
+      cleanSynopsis(t.synopsis) || null,
+      themes,
+    ]);
+  },
+};
+
+/** Собирает текст, который уходит в модель, по выбранному составу. */
 export function buildEmbeddingText(t: EmbeddableTitle): string {
-  const names = [t.titleRu, t.title, t.titleJp].filter(Boolean).join(" / ");
-
-  // Метки перекрывают жанры: Shikimori отдаёт kind="genre" тоже, и в базе
-  // они уже есть. Set убирает дубли, порядок — жанры первыми.
-  const genres = [...new Set([...t.genres.map((g) => g.name), ...t.tags.map((x) => x.name)])].join(", ");
-  const facts = [t.format, t.year ? String(t.year) : null].filter(Boolean).join(", ");
-
-  return [
-    names,
-    genres && `Жанры и темы: ${genres}`,
-    facts && `Формат: ${facts}`,
-    cleanSynopsis(t.synopsis),
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const variant = VARIANTS[EMBEDDING_VERSION];
+  if (!variant) {
+    throw new Error(`неизвестный состав «${EMBEDDING_VERSION}», есть: ${Object.keys(VARIANTS).join(", ")}`);
+  }
+  return variant(t);
 }
