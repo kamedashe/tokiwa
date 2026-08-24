@@ -25,3 +25,30 @@ export function localeAlternates(path: string): Record<string, string> {
   languages["x-default"] = languages[routing.defaultLocale];
   return languages;
 }
+
+/**
+ * Картинка для превью ссылки — та карточка, что разворачивается в чатах.
+ * Собирается на лету в /api/og, поэтому рисовать ничего не нужно: меняется
+ * подпись — меняется картинка.
+ *
+ * Размер 1200×630 — то, что ждут телеграм, дискорд и соцсети.
+ */
+export function ogImage({
+  title,
+  subtitle,
+  poster,
+}: {
+  title: string;
+  subtitle?: string | null;
+  poster?: string | null;
+}) {
+  const params = new URLSearchParams({ title });
+  if (subtitle) params.set("subtitle", subtitle);
+  if (poster) params.set("poster", poster);
+
+  return {
+    url: `${SITE_URL}/api/og?${params.toString()}`,
+    width: 1200,
+    height: 630,
+  };
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { localeAlternates } from "@/lib/seo";
+import { localeAlternates, ogImage } from "@/lib/seo";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -31,6 +31,7 @@ export async function generateMetadata({
     title: t("title"),
     description: t("intro"),
     alternates: { languages: localeAlternates("/backlog") },
+    openGraph: { images: [ogImage({ title: t("title"), subtitle: t("intro") })] },
   };
 }
 
