@@ -19,7 +19,9 @@
     "mainNav": "Main navigation",
     "telegram": "Our Telegram",
     "calendar": "Calendar",
-    "find": "By meaning"
+    "find": "By meaning",
+    "byName": "By title",
+    "byMeaning": "By meaning"
   },
   "home": {
     "spotlight": "SPOTLIGHT",
@@ -53,8 +55,7 @@
     "pages": "Pages",
     "prev": "← Back",
     "next": "Next →",
-    "titlesCount": "{count, plural, one {# title} other {# titles}}",
-    "semanticHint": "Don't remember the title? Describe it instead — <link>search by meaning</link>"
+    "titlesCount": "{count, plural, one {# title} other {# titles}}"
   },
   "find": {
     "title": "Search by meaning",
@@ -99,7 +100,15 @@
     "allEpisodes": "All episodes",
     "episodesHint": "Click a number to mark everything up to it. Click the last one again to unmark it.",
     "hideEpisodes": "Collapse",
-    "totalLength": "Total length:"
+    "totalLength": "Total length:",
+    "notifyAsk": "Get a ping when the next episode airs?",
+    "notifyAskDated": "Next episode airs {date}. Want a ping?",
+    "notifyYes": "Yes, ping me",
+    "notifyNo": "No thanks",
+    "notifyWorking": "Turning on…",
+    "notifyDone": "We will ping you when it airs",
+    "notifyBlocked": "Notifications are blocked in your browser settings — allow them for this site.",
+    "notifyIos": "On iPhone notifications only work if you add TokiWa to the Home Screen and open it from there."
   },
   "status": {
     "watching": "Watching",

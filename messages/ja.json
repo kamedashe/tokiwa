@@ -19,7 +19,9 @@
     "mainNav": "メインナビゲーション",
     "telegram": "公式Telegram",
     "calendar": "カレンダー",
-    "find": "意味で探す"
+    "find": "意味で探す",
+    "byName": "タイトルで",
+    "byMeaning": "内容で"
   },
   "home": {
     "spotlight": "注目作品",
@@ -53,8 +55,7 @@
     "pages": "ページ",
     "prev": "← 前へ",
     "next": "次へ →",
-    "titlesCount": "{count}作品",
-    "semanticHint": "作品名が思い出せない？ <link>意味で探す</link> を試してください"
+    "titlesCount": "{count}作品"
   },
   "find": {
     "title": "意味で探す",
@@ -99,7 +100,15 @@
     "allEpisodes": "全エピソード",
     "episodesHint": "番号をクリックすると、そこまで視聴済みになります。最後の話をもう一度クリックすると解除。",
     "hideEpisodes": "折りたたむ",
-    "totalLength": "総再生時間："
+    "totalLength": "総再生時間：",
+    "notifyAsk": "次の話が公開されたら通知しますか？",
+    "notifyAskDated": "次の話は{date}です。通知しますか？",
+    "notifyYes": "通知する",
+    "notifyNo": "いいえ",
+    "notifyWorking": "設定中…",
+    "notifyDone": "公開されたらお知らせします",
+    "notifyBlocked": "ブラウザの設定で通知がブロックされています。このサイトに許可してください。",
+    "notifyIos": "iPhone では、TokiWa をホーム画面に追加してそこから開いた場合のみ通知が使えます。"
   },
   "status": {
     "watching": "見ている",

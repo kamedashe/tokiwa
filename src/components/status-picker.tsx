@@ -11,9 +11,12 @@ import { ENTRY_CHANGED } from "@/lib/entry-events";
 export function StatusPicker({
   titleId,
   initialStatus,
+  onPicked,
 }: {
   titleId: number;
   initialStatus: string | null;
+  /** Соседние блоки реагируют на выбор — например, просьба про уведомления. */
+  onPicked?: (status: string | null) => void;
 }) {
   const t = useTranslations("status");
   const router = useRouter();
@@ -23,12 +26,14 @@ export function StatusPicker({
   const pick = (status: string) => {
     const previous = current;
     setCurrent(status);
+    onPicked?.(status);
 
     startTransition(async () => {
       const result = await setStatus(titleId, status);
 
       if (!result.ok) {
         setCurrent(previous);
+        onPicked?.(previous);
         router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`);
         return;
       }

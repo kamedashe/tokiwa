@@ -3,12 +3,12 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
+import { SearchTabs } from "@/components/search-tabs";
 import { Pagination } from "@/components/pagination";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { isSortKey, listGenres, searchTitles, type SortKey } from "@/lib/queries";
 import { localeAlternates } from "@/lib/seo";
-import { Link } from "@/i18n/navigation";
 
 export async function generateMetadata({
   params,
@@ -64,20 +64,14 @@ export default async function CatalogPage({
           <span className="font-display text-xs tracking-[0.1em] text-dim">{subheading}</span>
         </div>
 
-        <CatalogFilters genres={genres} q={q} genre={genre} sort={sort} />
-
         {/* Каталог ищет по названию — этого хватает, пока название помнят.
-            Когда не помнят, человек уходит ни с чем, поэтому подсказка стоит
-            прямо здесь, а не только в шапке. */}
-        <p className="mt-4 text-[13px] text-faint">
-          {t.rich("semanticHint", {
-            link: (chunks) => (
-              <Link href="/search" className="text-accent underline-offset-4 hover:underline">
-                {chunks}
-              </Link>
-            ),
-          })}
-        </p>
+            Когда не помнят, человек уходил ни с чем: вторая вкладка ловит
+            ровно этот момент и переносит набранное с собой. */}
+        <div className="mb-5">
+          <SearchTabs current="name" q={q} />
+        </div>
+
+        <CatalogFilters genres={genres} q={q} genre={genre} sort={sort} />
       </div>
 
       <TitleGrid items={result.items} emptyText={t("nothingFound")} />
