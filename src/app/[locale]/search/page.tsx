@@ -5,6 +5,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { TitleGrid } from "@/components/title-grid";
 import { SemanticSearchField } from "@/components/semantic-search-field";
+import { SearchTabs } from "@/components/search-tabs";
 import { semanticSearch } from "@/lib/semantic-queries";
 import { localeAlternates } from "@/lib/seo";
 
@@ -45,6 +46,10 @@ export default async function SearchPage({
         <div className="max-w-[720px]">
           <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">{t("title")}</h1>
           <p className="mt-2 text-[14px] leading-relaxed text-subtle">{t("lead")}</p>
+
+          <div className="mt-5">
+            <SearchTabs current="meaning" q={q} />
+          </div>
 
           <div className="mt-6">
             <SemanticSearchField initialQuery={q} examples={examples} />

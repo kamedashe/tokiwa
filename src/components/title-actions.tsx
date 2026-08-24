@@ -5,6 +5,7 @@ import { getEntry } from "@/lib/watchlist";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { StatusPicker } from "@/components/status-picker";
 import { ProgressStepper } from "@/components/progress-stepper";
+import { EpisodeNotifyAsk } from "@/components/episode-notify-ask";
 import { ENTRY_CHANGED, type EntryChangedDetail } from "@/lib/entry-events";
 
 /**
@@ -53,8 +54,26 @@ function useEntry(titleId: number) {
 }
 
 /** Кнопка «в список» и выбор статуса — колонка с постером. */
-export function TitleListActions({ titleId }: { titleId: number }) {
+export function TitleListActions({
+  titleId,
+  releasing,
+  nextEpisodeAt,
+  vapidKey,
+}: {
+  titleId: number;
+  /** Тайтл ещё выходит — только тогда есть смысл в уведомлениях. */
+  releasing: boolean;
+  nextEpisodeAt: string | null;
+  /** Пустая строка означает, что пуши в окружении не настроены. */
+  vapidKey: string;
+}) {
   const entry = useEntry(titleId);
+
+  // Статус нужен и здесь: просьба про уведомления показывается ровно тем,
+  // у кого этот тайтл в «смотрю». Локальное состояние опережает сервер,
+  // чтобы плашка появлялась в тот же момент, что и нажатие.
+  const [picked, setPicked] = useState<string | null>(null);
+  const status = picked ?? entry?.status ?? null;
 
   return (
     // Пока состояние неизвестно, блок приглушён, но место уже занимает —
@@ -70,7 +89,14 @@ export function TitleListActions({ titleId }: { titleId: number }) {
         key={`s-${entry?.status ?? "none"}`}
         titleId={titleId}
         initialStatus={entry?.status ?? null}
+        onPicked={setPicked}
       />
+
+      {/* Единственный канал возврата, которому хватает одного тайтла в
+          списке, — и единственный, не требующий регистрации. */}
+      {vapidKey && releasing && status === "watching" && (
+        <EpisodeNotifyAsk vapidKey={vapidKey} nextEpisodeAt={nextEpisodeAt} />
+      )}
     </div>
   );
 }

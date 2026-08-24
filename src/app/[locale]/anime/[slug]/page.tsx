@@ -102,6 +102,14 @@ export default async function TitlePage({
 
   const fullLength = totalMinutes(title);
 
+  // Ключ читаем здесь, а не через lib/push: тот тянет за собой web-push,
+  // а на этой странице нужна только проверка, что пуши вообще настроены.
+  // Приватный проверяем тоже — без него подписка заведётся, а отправка нет.
+  const vapidKey =
+    process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY
+      ? process.env.VAPID_PUBLIC_KEY
+      : "";
+
   const meta = [
     title.format,
     title.year,
@@ -139,7 +147,12 @@ export default async function TitlePage({
             </div>
           )}
 
-          <TitleListActions titleId={title.id} />
+          <TitleListActions
+            titleId={title.id}
+            releasing={title.status === "releasing"}
+            nextEpisodeAt={title.nextEpisodeAt?.toISOString() ?? null}
+            vapidKey={vapidKey}
+          />
 
           <div className="mt-5 flex flex-wrap gap-2">
             {title.genres.map((g) => (
