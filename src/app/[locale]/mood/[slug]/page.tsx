@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { AnimeCard } from "@/components/anime-card";
 import { MOODS, moodBySlug } from "@/lib/moods";
 import { listByMood } from "@/lib/queries";
-import { localeAlternates } from "@/lib/seo";
+import { localeAlternates, ogImage } from "@/lib/seo";
 
 /** Подборки статичны по составу настроений — генерируем все на сборке. */
 export function generateStaticParams() {
@@ -28,6 +28,9 @@ export async function generateMetadata({
     title: t(`${slug}.name`),
     description: t(`${slug}.tagline`),
     alternates: { languages: localeAlternates(`/mood/${slug}`) },
+    openGraph: {
+      images: [ogImage({ title: t(`${slug}.name`), subtitle: t(`${slug}.tagline`) })],
+    },
   };
 }
 

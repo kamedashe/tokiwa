@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { routing } from "@/i18n/routing";
 import { Clarity } from "@/components/clarity";
 import { InstallPrompt } from "@/components/install-prompt";
-import { SITE_URL } from "@/lib/seo";
+import { SITE_URL, ogImage } from "@/lib/seo";
 import "../globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -67,6 +67,8 @@ export async function generateMetadata({
       type: "website",
       siteName: t("siteName"),
       locale: OG_LOCALES[locale] ?? "ru_RU",
+      // Карточка для чатов: без неё ссылка разворачивается голым текстом.
+      images: [ogImage({ title: t("tagline"), subtitle: t("description") })],
     },
     // Установленная PWA: имя под иконкой и полноэкранный запуск на iOS —
     // Android берёт то же самое из манифеста.

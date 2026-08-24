@@ -61,6 +61,8 @@ model Title {
   genres    Genre[]
   /// Тематические метки с Shikimori — см. модель Tag.
   tags      Tag[]
+  /// Метки AniList с рангами — см. модель AniTag.
+  aniTags   TitleAniTag[]
   watchlist WatchlistEntry[]
 
   /// Франшиза: сиквелы, приквелы, побочки и фильмы одного тайтла. Prisma
@@ -71,7 +73,8 @@ model Title {
 
   /// Когда последний раз тянули метки. null — ещё не ходили, поэтому обход
   /// возобновляется с места остановки, как и у relatedSyncedAt.
-  tagsSyncedAt DateTime?
+  tagsSyncedAt    DateTime?
+  aniTagsSyncedAt DateTime?
 
   /// --- Смысловой поиск ---
   ///
@@ -124,6 +127,48 @@ model Title {
 model SyncState {
   key   String @id
   value Int
+}
+
+/// Метки AniList — то, из чего считается вектор тона.
+///
+/// Зачем ещё одни метки, когда есть Tag: у Shikimori их 80 на весь каталог и
+/// по три на тайтл, поэтому различных наборов выходит всего 5459 на 15583
+/// тайтла, а 39% тайтлов сидят в группах по десять и больше. Вектор тона из
+/// такого набора умеет подвинуть категорию, но внутри категории не различает
+/// ничего. У AniList меток сотни и по тринадцать на тайтл: на пробе в 500
+/// тайтлов различных наборов оказалось 492, то есть почти у каждого свой.
+///
+/// Ещё они точнее по смыслу. У «Фрирен» Shikimori даёт «Сёнен, Приключения,
+/// Драма, Фэнтези», AniList — «Travel, Magic, Elf, Philosophy, Medieval,
+/// Found Family, Kuudere, Iyashikei, Rural».
+model AniTag {
+  /// Идентификатор AniList, свой генерировать незачем.
+  id   Int    @id
+  name String @unique
+  /// Раздел вида Theme-Fantasy, Cast-Traits, Technical. По нему отсеиваются
+  /// метки не про содержание: Rotoscoping — это способ рисовать, а не тон.
+  category String?
+  isAdult  Boolean @default(false)
+
+  titles TitleAniTag[]
+
+  @@index([category])
+}
+
+/// Связь тайтла с меткой AniList. Отдельная модель, а не неявная связь, из-за
+/// ранга: AniList хранит, насколько метка подходит тайтлу (0-100 по голосам
+/// пользователей), и это нужно и для порядка слов в тексте тона, и для отсева
+/// случайных меток с рангом ниже полусотни.
+model TitleAniTag {
+  titleId Int
+  title   Title  @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  tagId   Int
+  tag     AniTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  rank Int
+
+  @@id([titleId, tagId])
+  @@index([tagId])
 }
 
 /// Тематические метки Shikimori: kind theme и demographic (Iyashikei, Gore,

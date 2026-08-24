@@ -67,6 +67,7 @@ async function main() {
       year: true, format: true, status: true, episodesCount: true,
       genres: { select: { name: true } },
       tags: { select: { name: true, nameRu: true, kind: true } },
+      aniTags: { select: { rank: true, tag: { select: { name: true, category: true } } } },
     },
   });
 

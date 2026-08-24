@@ -26,6 +26,11 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+// Импорт живёт серверным экшеном этой страницы, а он дотягивает недостающие
+// тайтлы с Shikimori — двадцать секунд в бюджете против дефолтных десяти.
+// Без этого перенос больших списков обрывался на середине.
+export const maxDuration = 60;
+
 export default async function MyListPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations("myList");
@@ -85,33 +90,47 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
     return (
       <main className="min-h-screen">
         <SiteHeader />
-        <div className="flex flex-col items-center gap-4 px-6 py-32 text-center">
-          <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">{t("emptyTitle")}</h1>
-          <p className="max-w-md text-muted">
-            {t("emptyText")}
-          </p>
-          <Link
-            href="/catalog"
-            className="mt-2 rounded-full bg-accent px-6 py-3 text-[15px] font-bold text-ink transition-colors hover:bg-accent-soft"
-          >
-            {t("toCatalog")}
-          </Link>
+        <div className="mx-auto max-w-xl px-2 pt-20 md:px-0">
+          <div className="px-4 text-center md:px-10">
+            <h1 className="font-display text-[28px] font-bold tracking-[-0.03em]">
+              {t("emptyTitle")}
+            </h1>
+            <p className="mt-3 text-muted">{t("emptyText")}</p>
+          </div>
+
+          {/* Импорт первым и сразу раскрытым. Собирать список руками с нуля —
+              работа на вечер, а перенос с Shikimori занимает одно поле; тот,
+              кто уже где-то вёл список, должен упереться в него, а не искать
+              серую кнопку под футером. */}
+          <div className="mt-8">
+            <ImportList
+              importShikimori={importFromShikimori}
+              importMal={importFromMalFile}
+              isGuest={!session?.user}
+              defaultOpen
+            />
+          </div>
+
+          <div className="mt-6 px-4 text-center text-[13px] text-dim md:px-10">
+            {t("orBuild")}{" "}
+            <Link href="/catalog" className="text-accent transition-colors hover:text-accent-soft">
+              {t("toCatalog")}
+            </Link>
+          </div>
         </div>
 
-        <div className="pb-16">
-          <ImportList
-            importShikimori={importFromShikimori}
-            importMal={importFromMalFile}
-            isGuest={!session?.user}
-          />
-        </div>
-
-      <SiteFooter />
-      <div className="h-20 md:hidden" />
-      <MobileNav current="/my" />
-    </main>
+        <div className="h-24" />
+        <SiteFooter />
+        <div className="h-20 md:hidden" />
+        <MobileNav current="/my" />
+      </main>
     );
   }
+
+  // Список из пары тайтлов — это ещё не список: часы, уровни и уведомления
+  // на нём ничего не показывают. Пока он такой, импорт стоит наверху и
+  // говорит громко; когда список набран, уходит сноской вниз.
+  const listIsThin = total <= 5;
 
   return (
     <main className="min-h-screen">
@@ -141,6 +160,20 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
             {t("exportList")}
           </a>
         </div>
+      </div>
+
+      {listIsThin && (
+        <div className="mb-6">
+          <ImportList
+            importShikimori={importFromShikimori}
+            importMal={importFromMalFile}
+            isGuest={!session?.user}
+            tone="loud"
+          />
+        </div>
+      )}
+
+      <div className="px-4 md:px-10">
 
         {/* Сначала спрашиваем, нужна ли сохранность вообще, и только тем, кто
             ответил «да», показываем предложение войти. Сказавших «нет» больше
@@ -286,12 +319,17 @@ export default async function MyListPage({ params }: { params: Promise<{ locale:
         <FeedbackNudge labels={nudgeLabels} />
       </div>
 
-      <div className="h-12" />
-      <ImportList
+      {/* Наверху он уже есть — второй раз не повторяем. */}
+      {!listIsThin && (
+        <>
+          <div className="h-12" />
+          <ImportList
             importShikimori={importFromShikimori}
             importMal={importFromMalFile}
             isGuest={!session?.user}
           />
+        </>
+      )}
 
       <div className="h-16" />
       <div className="h-20 md:hidden" />

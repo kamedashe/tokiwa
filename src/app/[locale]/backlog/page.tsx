@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { localeAlternates } from "@/lib/seo";
+import { localeAlternates, ogImage } from "@/lib/seo";
 import { SiteHeader } from "@/components/site-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -31,6 +31,7 @@ export async function generateMetadata({
     title: t("title"),
     description: t("intro"),
     alternates: { languages: localeAlternates("/backlog") },
+    openGraph: { images: [ogImage({ title: t("title"), subtitle: t("intro") })] },
   };
 }
 
@@ -98,7 +99,7 @@ export default async function BacklogPage({
         )}
 
         {totalAhead === 0 && stats.completedCount === 0 ? (
-          <Empty text={t("emptyText")} cta={t("getTitles")} />
+          <Empty text={t("emptyText")} cta={t("getTitles")} importHint={t("orImport")} />
         ) : (
           <>
             <section className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -298,7 +299,7 @@ function Pace({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Empty({ text, cta }: { text: string; cta: string }) {
+function Empty({ text, cta, importHint }: { text: string; cta: string; importHint: string }) {
   return (
     <div className="mt-10 rounded-2xl border border-dashed border-white/10 px-6 py-16 text-center">
       <p className="text-muted">{text}</p>
@@ -308,6 +309,14 @@ function Empty({ text, cta }: { text: string; cta: string }) {
       >
         {cta}
       </Link>
+      {/* Набирать список руками ради одной цифры никто не станет. Тому, кто
+          уже вёл его на Shikimori или MAL, до ответа остаётся одно поле. */}
+      <p className="mt-5 text-[13px] text-dim">
+        {importHint}{" "}
+        <Link href="/my" className="text-accent transition-colors hover:text-accent-soft">
+          →
+        </Link>
+      </p>
     </div>
   );
 }

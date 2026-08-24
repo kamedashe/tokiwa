@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { getNearby, type CardTitle } from "@/lib/queries";
 import { formatDuration, totalMinutes } from "@/lib/backlog";
 import { pickTitle } from "@/lib/title-locale";
-import { localeAlternates } from "@/lib/seo";
+import { localeAlternates, ogImage } from "@/lib/seo";
 import { animeJsonLd, serializeJsonLd } from "@/lib/structured-data";
 
 // Страница публичная и одинаковая для всех: личный статус подтягивают
@@ -59,6 +59,16 @@ export async function generateMetadata({
 
   const display = pickTitle(title, locale).title;
 
+  // В подписи — длительность: это то, ради чего сюда приходят, и в чате
+  // такая карточка сразу объясняет, чем сайт полезен.
+  const time = await getTranslations({ locale, namespace: "time" });
+  const minutes = totalMinutes(title);
+  const parts = [
+    title.format,
+    title.year ? String(title.year) : null,
+    minutes > 0 ? formatDuration(time, minutes) : null,
+  ].filter(Boolean);
+
   return {
     title: display,
     description: title.synopsis?.slice(0, 160) ?? undefined,
@@ -66,7 +76,11 @@ export async function generateMetadata({
     openGraph: {
       title: display,
       description: title.synopsis?.slice(0, 160) ?? undefined,
-      images: title.posterUrl ? [title.posterUrl] : undefined,
+      // Своя карточка вместо голого постера: постер вертикальный, и чаты
+      // обрезают его как попало.
+      images: [
+        ogImage({ title: display, subtitle: parts.join(" · "), poster: title.posterUrl }),
+      ],
     },
   };
 }

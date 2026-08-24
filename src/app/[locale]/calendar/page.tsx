@@ -7,7 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Artwork } from "@/components/artwork";
 import { getWeekSchedule, type CalendarItem } from "@/lib/queries";
 import { getViewerId } from "@/lib/guest";
-import { localeAlternates } from "@/lib/seo";
+import { localeAlternates, ogImage } from "@/lib/seo";
 
 // Календарь помечает тайтлы из списка посетителя — рендер под каждого.
 export const dynamic = "force-dynamic";
@@ -23,6 +23,7 @@ export async function generateMetadata({
     title: t("title"),
     description: t("intro"),
     alternates: { languages: localeAlternates("/calendar") },
+    openGraph: { images: [ogImage({ title: t("title"), subtitle: t("intro") })] },
   };
 }
 
