@@ -13,6 +13,7 @@
  */
 import { prisma } from "../src/lib/prisma";
 import { cleanSynopsis } from "../src/lib/embedding-text";
+import { parseQuery } from "../src/lib/query-filters";
 import { searchByVector, TONE_WEIGHT } from "../src/lib/semantic-search";
 import { embedQuery, usedTokens } from "../src/lib/voyage";
 
@@ -29,13 +30,23 @@ async function main() {
   // Без прогрева это время село бы в замер поиска и врало бы в тридцать раз.
   await prisma.$queryRaw`SELECT 1`;
 
+  // Структурные условия вынимаем до векторизации: в модель должен уйти
+  // только смысл, без цифр года и без «без гарема», которое она всё равно
+  // поймёт наоборот.
+  const parsed = parseQuery(query);
+
   const started = Date.now();
-  const vector = await embedQuery(query);
+  const vector = await embedQuery(parsed.text || query);
   const embedded = Date.now();
 
-  const rows = await searchByVector(vector, limit);
+  const rows = await searchByVector(vector, limit, TONE_WEIGHT, parsed.filters);
 
-  console.log(`«${query}»   вес тона ${TONE_WEIGHT}\n`);
+  console.log(`«${query}»   вес тона ${TONE_WEIGHT}`);
+  if (parsed.matched.length) {
+    console.log(`  условия: ${parsed.matched.join("; ")}`);
+    console.log(`  в модель: «${parsed.text}»`);
+  }
+  console.log();
   for (const [i, r] of rows.entries()) {
     const name = r.titleRu ?? r.title;
     const facts = [r.format, r.year].filter(Boolean).join(" ");

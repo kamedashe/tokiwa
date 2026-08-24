@@ -26,6 +26,7 @@
     "probe": "tsx scripts/probe.ts",
     "compare": "tsx scripts/compare.ts",
     "sweep": "tsx scripts/sweep.ts",
+    "parse": "tsx scripts/parse.ts",
     "backup": "tsx scripts/backup.ts",
     "restore": "tsx scripts/restore.ts"
   },

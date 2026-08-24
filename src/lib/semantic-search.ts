@@ -14,6 +14,7 @@
  */
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
+import type { QueryFilters } from "./query-filters";
 import { toVectorLiteral, VECTOR_SQL_TYPE } from "./vector";
 
 /**
@@ -46,6 +47,38 @@ export type Hit = {
 };
 
 /**
+ * Структурные условия — обычным WHERE.
+ *
+ * Это и есть смысл разбора запроса: «без гарема» вектору объяснить нельзя, он
+ * видит слово «гарем» и тянется к нему. А в SQL это просто отсутствие связи с
+ * меткой.
+ *
+ * alias нужен потому, что в поиске по запросу таблица идёт без псевдонима, а
+ * в поиске похожих — под t.
+ */
+function whereFrom(f: QueryFilters, alias: string): Prisma.Sql {
+  const id = Prisma.raw(`${alias}.id`);
+  const col = (name: string) => Prisma.raw(`${alias}."${name}"`);
+  const parts: Prisma.Sql[] = [Prisma.sql`${col("embedding")} IS NOT NULL`];
+
+  if (f.yearFrom !== undefined) parts.push(Prisma.sql`${col("year")} >= ${f.yearFrom}`);
+  if (f.yearTo !== undefined) parts.push(Prisma.sql`${col("year")} <= ${f.yearTo}`);
+  if (f.formats?.length) parts.push(Prisma.sql`${col("format")} = ANY(${f.formats}::text[])`);
+  if (f.episodesMax !== undefined) parts.push(Prisma.sql`${col("episodesCount")} <= ${f.episodesMax}`);
+  if (f.episodesMin !== undefined) parts.push(Prisma.sql`${col("episodesCount")} >= ${f.episodesMin}`);
+  if (f.status) parts.push(Prisma.sql`${col("status")} = ${f.status}`);
+  if (f.scoreMin !== undefined) parts.push(Prisma.sql`${col("score")} >= ${f.scoreMin}`);
+
+  if (f.excludeTags?.length) {
+    parts.push(Prisma.sql`NOT EXISTS (
+      SELECT 1 FROM "TitleAniTag" x JOIN "AniTag" a ON a.id = x."tagId"
+      WHERE x."titleId" = ${id} AND a.name = ANY(${f.excludeTags}::text[]))`);
+  }
+
+  return Prisma.join(parts, " AND ");
+}
+
+/**
  * Ищет тайтлы по вектору запроса.
  *
  * Расстояния считаются один раз в CTE, а не по разу на каждое упоминание:
@@ -65,6 +98,7 @@ export async function searchByVector(
   vector: number[],
   limit: number,
   weight: number = TONE_WEIGHT,
+  filters: QueryFilters = {},
 ): Promise<Hit[]> {
   const literal = toVectorLiteral(vector);
   const q = Prisma.sql`${literal}::${Prisma.raw(VECTOR_SQL_TYPE)}`;
@@ -75,7 +109,7 @@ export async function searchByVector(
              ("embedding" <=> ${q}) AS dp,
              ("embeddingTone" <=> ${q}) AS dt
       FROM "Title"
-      WHERE "embedding" IS NOT NULL
+      WHERE ${whereFrom(filters, '"Title"')}
     ),
     m AS (SELECT avg(dt) AS avg_dt FROM d WHERE dt IS NOT NULL),
     top AS (
@@ -102,6 +136,7 @@ export async function similarTo(
   limit: number,
   excludeIds: number[],
   weight: number = TONE_WEIGHT,
+  filters: QueryFilters = {},
 ): Promise<Hit[]> {
   const exclude = [titleId, ...excludeIds];
 
@@ -114,7 +149,7 @@ export async function similarTo(
              (t."embedding" <=> src.plot) AS dp,
              (t."embeddingTone" <=> src.tone) AS dt
       FROM "Title" t, src
-      WHERE t."embedding" IS NOT NULL AND t.id <> ALL(${exclude}::int[])
+      WHERE ${whereFrom(filters, "t")} AND t.id <> ALL(${exclude}::int[])
     ),
     m AS (SELECT avg(dt) AS avg_dt FROM d WHERE dt IS NOT NULL),
     top AS (

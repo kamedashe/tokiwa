@@ -52,6 +52,43 @@ async function main() {
   console.log(`гости без регистрации: ${guests} (+${guestsDay} за сутки)`);
   console.log(`  из них завели список: ${guestsWithList} (${pct(guestsWithList, guests)})`);
 
+  // ── Приход по дням ──────────────────────────────────────────────────────
+  // Строка гостя заводится только внутри server action, поэтому это не
+  // «зашли», а «пришли и что-то сделали» — метрика строже посещаемости и
+  // не зависит от аналитики на стороне. Единственная, где видно и гостей:
+  // ниже по файлу возвраты и когорты считаются только по аккаунтам, а это
+  // пятая часть людей.
+  const fortnightAgo = new Date(now.getTime() - 14 * 86_400_000);
+  const arrivals = await prisma.user.findMany({
+    where: { createdAt: { gte: fortnightAgo } },
+    select: { createdAt: true, isGuest: true, _count: { select: { watchlist: true } } },
+  });
+
+  const byArrivalDay = new Map<string, { acted: number; withList: number; signedUp: number }>();
+  for (const u of arrivals) {
+    const d = day(u.createdAt);
+    const row =
+      byArrivalDay.get(d) ??
+      byArrivalDay.set(d, { acted: 0, withList: 0, signedUp: 0 }).get(d)!;
+    if (u.isGuest) {
+      row.acted++;
+      if (u._count.watchlist > 0) row.withList++;
+    } else {
+      row.signedUp++;
+    }
+  }
+
+  const arrivalRows = [...byArrivalDay.entries()].sort();
+  const arrivalPeak = Math.max(...arrivalRows.map(([, r]) => r.acted), 1);
+
+  console.log("\n=== ПРИХОД ПО ДНЯМ (последние 2 недели) ===");
+  console.log("  дата        пришли  со списком  зарегались");
+  for (const [date, r] of arrivalRows) {
+    console.log(
+      `  ${date}  ${String(r.acted).padStart(6)}  ${String(r.withList).padStart(10)}  ${String(r.signedUp).padStart(10)}  ${bar(r.acted, arrivalPeak, 18)}`,
+    );
+  }
+
   // ── Что в списках ───────────────────────────────────────────────────────
   const [entries, entriesDay, withProgress, byStatus] = await Promise.all([
     prisma.watchlistEntry.count(),
