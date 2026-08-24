@@ -16,11 +16,23 @@ import { embedQuery } from "@/lib/voyage";
 
 export type SemanticResult = {
   items: CardTitle[];
+  /**
+   * Модель не ответила: нет ключа, лимит, отказ сервиса. Страница показывает
+   * извинение вместо пустой выдачи — «ничего не нашлось» здесь враньё, мы
+   * даже не искали.
+   */
+  unavailable?: boolean;
   /** Распознанные условия человеческим языком — их показываем над выдачей. */
   matched: string[];
   /** Что из запроса досталось модели после вырезания условий. */
   semanticText: string;
 };
+
+/**
+ * Потолок длины запроса. Осмысленное описание в двести символов укладывается,
+ * а всё длиннее — это вставленная простыня, за которую платить незачем.
+ */
+const MAX_QUERY = 200;
 
 /** Больше тысячи разных запросов на инстанс не ждём, но потолок нужен. */
 const CACHE_LIMIT = 500;
@@ -55,6 +67,22 @@ const CARD_SELECT = {
   genres: { select: { name: true }, take: 2 },
 } as const;
 
+/**
+ * Пишем запрос в лог и не ждём результата.
+ *
+ * Ни пользователя, ни адреса — только формулировка. Набор проб, на котором
+ * проверяются правки поиска, придуман мной и неизбежно похож на то, как
+ * формулирую я; живые запросы показывают, как формулируют остальные.
+ *
+ * Ошибка записи не должна ронять выдачу: человек пришёл искать, а не
+ * пополнять статистику.
+ */
+function logQuery(text: string, matched: string[], results: number, locale: string): void {
+  void prisma.searchQuery
+    .create({ data: { text: text.slice(0, MAX_QUERY), matched, results, locale } })
+    .catch((e) => console.error("не записал запрос в лог", e));
+}
+
 export async function semanticSearch(
   query: string,
   locale: string,
@@ -67,8 +95,18 @@ export async function semanticSearch(
   // задаёт тему, а условия всё равно отработают в WHERE.
   const semanticText = parsed.text || query;
 
-  const vector = await cachedEmbedding(semanticText);
+  let vector: number[];
+  try {
+    vector = await cachedEmbedding(semanticText.slice(0, MAX_QUERY));
+  } catch (e) {
+    // Ронять страницу нельзя: без вектора искать нечем, но и пятисотая
+    // вместо выдачи — худшее, что можно показать человеку.
+    console.error("смысловой поиск: модель не ответила", e);
+    return { items: [], matched: parsed.matched, semanticText, unavailable: true };
+  }
+
   const hits = await searchByVector(vector, limit, TONE_WEIGHT, parsed.filters);
+  logQuery(query, parsed.matched, hits.length, locale);
   if (!hits.length) return { items: [], matched: parsed.matched, semanticText };
 
   // Карточке нужно больше полей, чем поиску: постер, слаг, жанры. Тянем их

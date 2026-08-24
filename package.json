@@ -17,6 +17,7 @@
     "db:anitags": "tsx scripts/sync-anilist-tags.ts",
     "db:compact": "tsx scripts/db-compact.ts",
     "feedback": "tsx scripts/read-feedback.ts",
+    "queries": "tsx scripts/read-queries.ts",
     "stats": "tsx scripts/stats.ts",
     "supporter": "tsx scripts/supporter.ts",
     "embed": "tsx scripts/embed-titles.ts",

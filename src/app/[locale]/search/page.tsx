@@ -71,7 +71,11 @@ export default async function SearchPage({
         </div>
       </div>
 
-      {result ? (
+      {result?.unavailable ? (
+        <div className="px-4 pb-8 pt-12 md:px-10">
+          <p className="max-w-[560px] text-[14px] leading-relaxed text-muted">{t("unavailable")}</p>
+        </div>
+      ) : result ? (
         <div className="pt-8">
           <TitleGrid items={result.items} emptyText={t("nothing")} />
         </div>

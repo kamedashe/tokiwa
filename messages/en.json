@@ -68,7 +68,8 @@
     "example1": "something quiet and cosy to unwind with",
     "example2": "a sad story about growing up and loss",
     "example3": "cooking in another world",
-    "example4": "brutal survival, no harem"
+    "example4": "brutal survival, no harem",
+    "unavailable": "Search by meaning is unavailable right now — the service that turns a query into a vector is not responding. The catalogue works as usual."
   },
   "seasons": {
     "current": "current",
