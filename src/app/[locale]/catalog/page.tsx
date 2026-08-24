@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { isSortKey, listGenres, searchTitles, type SortKey } from "@/lib/queries";
 import { localeAlternates } from "@/lib/seo";
+import { Link } from "@/i18n/navigation";
 
 export async function generateMetadata({
   params,
@@ -64,6 +65,19 @@ export default async function CatalogPage({
         </div>
 
         <CatalogFilters genres={genres} q={q} genre={genre} sort={sort} />
+
+        {/* Каталог ищет по названию — этого хватает, пока название помнят.
+            Когда не помнят, человек уходит ни с чем, поэтому подсказка стоит
+            прямо здесь, а не только в шапке. */}
+        <p className="mt-4 text-[13px] text-faint">
+          {t.rich("semanticHint", {
+            link: (chunks) => (
+              <Link href="/search" className="text-accent underline-offset-4 hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
       </div>
 
       <TitleGrid items={result.items} emptyText={t("nothingFound")} />
