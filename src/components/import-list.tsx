@@ -11,12 +11,29 @@ interface Props {
   importMal: (formData: FormData) => Promise<ImportResponse>;
   /** Гость только что перенёс сотни тайтлов — лучший момент предложить вход. */
   isGuest?: boolean;
+  /**
+   * Развернуть сразу, без кнопки. Для пустого списка: там переносить нечего
+   * поверх, и лишний клик стоит между человеком и единственным осмысленным
+   * действием на странице.
+   */
+  defaultOpen?: boolean;
+  /**
+   * Насколько громко звать. У кого список уже большой, импорт — сноска внизу
+   * страницы; у кого он из пары тайтлов, это главное, что стоит сделать.
+   */
+  tone?: "quiet" | "loud";
 }
 
-export function ImportList({ importShikimori, importMal, isGuest = false }: Props) {
+export function ImportList({
+  importShikimori,
+  importMal,
+  isGuest = false,
+  defaultOpen = false,
+  tone = "quiet",
+}: Props) {
   const t = useTranslations("import");
   const g = useTranslations("guest");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [nickname, setNickname] = useState("");
   const [result, setResult] = useState<ImportResponse | null>(null);
   const [pending, startTransition] = useTransition();
@@ -27,18 +44,37 @@ export function ImportList({ importShikimori, importMal, isGuest = false }: Prop
     startTransition(async () => setResult(await action()));
   }
 
+  const loud = tone === "loud";
+
   return (
     <div className="px-4 md:px-10">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="rounded-full border border-hairline bg-white/[0.03] px-4 py-2 text-[13px] text-muted transition-colors hover:border-white/20 hover:text-foreground"
-      >
-        {t("open")}
-      </button>
+      {/* Развёрнутый по умолчанию блок сворачивать некуда и незачем —
+          кнопку в этом случае не показываем вовсе. */}
+      {!defaultOpen && (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className={
+            loud
+              ? "rounded-full bg-accent px-5 py-2.5 text-[14px] font-bold text-ink transition-colors hover:bg-accent-soft"
+              : "rounded-full border border-hairline bg-white/[0.03] px-4 py-2 text-[13px] text-muted transition-colors hover:border-white/20 hover:text-foreground"
+          }
+        >
+          {loud ? t("openLoud") : t("open")}
+        </button>
+      )}
+
+      {/* Зачем это вообще нужно — рядом с кнопкой, а не внутри свёрнутого
+          блока: иначе объяснение читают только те, кто уже нажал. */}
+      {loud && !open && <p className="mt-2 max-w-[46ch] text-[13px] text-dim">{t("pitch")}</p>}
 
       {open && (
         <div className="mt-4 max-w-xl rounded-2xl border border-hairline bg-white/[0.02] p-5">
+          {defaultOpen && (
+            <div className="mb-1 font-display text-[17px] font-semibold tracking-[-0.01em]">
+              {t("heading")}
+            </div>
+          )}
           <p className="mb-4 text-[13px] leading-relaxed text-dim">{t("intro")}</p>
 
           <label className="mb-1.5 block font-display text-[11px] tracking-[0.16em] text-dim">

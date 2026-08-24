@@ -52,7 +52,7 @@
     "pages": "Pages",
     "prev": "← Back",
     "next": "Next →",
-    "titlesCount": "{count} titles"
+    "titlesCount": "{count, plural, one {# title} other {# titles}}"
   },
   "seasons": {
     "current": "current",
@@ -119,7 +119,8 @@
     "pushWorking": "Enabling…",
     "storageGuest": "This list lives in this browser only",
     "storageAccount": "List saved to your account",
-    "exportList": "Download as file"
+    "exportList": "Download as file",
+    "orBuild": "Or build a list from scratch —"
   },
   "backlog": {
     "title": "How much time I have",
@@ -147,7 +148,8 @@
     "emptyText": "Your list is empty, nothing to count.",
     "getTitles": "Find some titles",
     "estimatedHint": "Duration unknown, using a typical value",
-    "supportHint": "Did the math save you an evening?"
+    "supportHint": "Did the math save you an evening?",
+    "orImport": "Already keeping a list on Shikimori or MAL? Bring it over"
   },
   "time": {
     "minutes": "{count} min",
@@ -202,7 +204,10 @@
       "failed": "The source did not respond. Try again.",
       "empty": "Nothing to import."
     },
-    "repeatHint": "Titles missing from our catalog are pulled in automatically. One run does not always cover everything — just run the import again."
+    "repeatHint": "Titles missing from our catalog are pulled in automatically. One run does not always cover everything — just run the import again.",
+    "openLoud": "Bring your list from Shikimori or MAL",
+    "pitch": "Hours, levels and episode alerts are all counted from your list. The import takes one field — and fills them all in at once.",
+    "heading": "Already keeping a list somewhere else?"
   },
   "friends": {
     "title": "Friends of the project",
