@@ -12,6 +12,7 @@ import { TELEGRAM_URL } from "@/lib/seo";
 const NAV = [
   { key: "home", href: "/" },
   { key: "catalog", href: "/catalog" },
+  { key: "find", href: "/search" },
   { key: "calendar", href: "/calendar" },
   { key: "seasons", href: "/seasons" },
   { key: "top", href: "/top" },

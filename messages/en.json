@@ -18,7 +18,8 @@
     "backlog": "How much time I have",
     "mainNav": "Main navigation",
     "telegram": "Our Telegram",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "find": "By meaning"
   },
   "home": {
     "spotlight": "SPOTLIGHT",
@@ -52,7 +53,23 @@
     "pages": "Pages",
     "prev": "← Back",
     "next": "Next →",
-    "titlesCount": "{count, plural, one {# title} other {# titles}}"
+    "titlesCount": "{count, plural, one {# title} other {# titles}}",
+    "semanticHint": "Don't remember the title? Describe it instead — <link>search by meaning</link>"
+  },
+  "find": {
+    "title": "Search by meaning",
+    "lead": "Describe what you want to watch in your own words: mood, plot, conditions. For titles, the catalogue works better — that is not what this searches.",
+    "placeholder": "something quiet from the 2020s, no harem",
+    "label": "Search by meaning",
+    "submit": "Search",
+    "conditions": "CONDITIONS",
+    "nothing": "Nothing found. Try describing it differently or dropping a condition.",
+    "hint": "This searches by meaning rather than by title: «a sad story about growing up and loss» finds shows whose descriptions never use those words. Conditions like «under 12 episodes», «movies only» or «no harem» are understood separately and filter the rest out.",
+    "example1": "something quiet and cosy to unwind with",
+    "example2": "a sad story about growing up and loss",
+    "example3": "cooking in another world",
+    "example4": "brutal survival, no harem",
+    "unavailable": "Search by meaning is unavailable right now — the service that turns a query into a vector is not responding. The catalogue works as usual."
   },
   "seasons": {
     "current": "current",

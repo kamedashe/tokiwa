@@ -51,6 +51,7 @@ async function staticShard(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     ...entriesFor("/", { changeFrequency: "daily", priority: 1 }),
     ...entriesFor("/catalog", { changeFrequency: "daily", priority: 0.8 }),
+    ...entriesFor("/search", { changeFrequency: "monthly", priority: 0.6 }),
     ...entriesFor("/top", { changeFrequency: "weekly", priority: 0.7 }),
     ...entriesFor("/seasons", { changeFrequency: "weekly", priority: 0.7 }),
     // Витрина главной фичи — с гостевым режимом работает без входа.
