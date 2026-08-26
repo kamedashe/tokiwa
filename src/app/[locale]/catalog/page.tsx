@@ -8,7 +8,7 @@ import { Pagination } from "@/components/pagination";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { isSortKey, listGenres, searchTitles, type SortKey } from "@/lib/queries";
-import { localeAlternates } from "@/lib/seo";
+import { localeAlternates, ogImage } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -17,7 +17,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "catalog" });
-  return { title: t("title"), alternates: { languages: localeAlternates("/catalog") } };
+  return {
+    title: t("title"),
+    alternates: { languages: localeAlternates("/catalog") },
+    openGraph: { images: [ogImage({ title: t("title") })] },
+  };
 }
 
 export default async function CatalogPage({

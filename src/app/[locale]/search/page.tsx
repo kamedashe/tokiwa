@@ -7,7 +7,7 @@ import { TitleGrid } from "@/components/title-grid";
 import { SemanticSearchField } from "@/components/semantic-search-field";
 import { SearchTabs } from "@/components/search-tabs";
 import { semanticSearch } from "@/lib/semantic-queries";
-import { localeAlternates } from "@/lib/seo";
+import { localeAlternates, ogImage } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -20,6 +20,9 @@ export async function generateMetadata({
     title: t("title"),
     description: t("lead"),
     alternates: { languages: localeAlternates("/search") },
+    // В подписи — живой пример запроса, а не описание: карточка объясняет
+    // фичу быстрее любого пересказа, а описание туда всё равно не влезает.
+    openGraph: { images: [ogImage({ title: t("title"), subtitle: t("example2") })] },
   };
 }
 
