@@ -21,6 +21,52 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-08-24",
+    ru: {
+      title: "Поиск по смыслу",
+      text: "Опишите словами, что хотите посмотреть: «грустная история про взросление», «тихое и уютное, чтобы отдохнуть». Ищет по смыслу, а не по названию, и понимает условия вроде «без гарема» или «из 2020-х». Вкладки «По названию» и «По смыслу» стоят над каталогом, и набранное переносится между ними.",
+    },
+    en: {
+      title: "Search by meaning",
+      text: "Describe what you are in the mood for: “a sad story about growing up”, “something quiet and cosy to unwind”. It searches by meaning rather than by title, and understands conditions like “no harem” or “from the 2020s”. The “By title” and “By meaning” tabs sit above the catalog, and your query moves between them.",
+    },
+    href: "/search",
+  },
+  {
+    date: "2026-08-24",
+    ru: {
+      title: "Уведомления о новых сериях — без аккаунта",
+      text: "Отметьте выходящий сериал как «смотрю» — и прямо там можно попросить прислать уведомление, когда выйдет серия. Приходит на устройство, даже если сайт закрыт. Регистрация не нужна: подписка живёт в браузере. На iPhone работает, если добавить TokiWa на экран «Домой».",
+    },
+    en: {
+      title: "Episode alerts without an account",
+      text: "Mark an airing show as “watching” and you can ask for a ping right there, for when the next episode drops. It arrives on your device even with the site closed. No sign-up needed — the subscription lives in your browser. On iPhone it works once TokiWa is added to the Home Screen.",
+    },
+  },
+  {
+    date: "2026-08-24",
+    ru: {
+      title: "Перенос списка с Shikimori и MyAnimeList",
+      text: "Ник на Shikimori или файл выгрузки с MAL — и список переезжает вместе со статусами и прогрессом. Уже отмеченное не перезаписывается. Раньше кнопка пряталась внизу страницы, теперь её видно сразу.",
+    },
+    en: {
+      title: "Bring your list from Shikimori or MyAnimeList",
+      text: "Your Shikimori nickname or a MAL export file, and the list moves over with statuses and progress. Anything you have already marked stays as it is. The button used to hide at the bottom of the page — now you land on it.",
+    },
+    href: "/my",
+  },
+  {
+    date: "2026-08-24",
+    ru: {
+      title: "Ссылки разворачиваются картинкой",
+      text: "Кинули ссылку на тайтл в чат — вместо голого адреса появится карточка с постером, названием и полной длительностью.",
+    },
+    en: {
+      title: "Links unfurl with a card",
+      text: "Drop a title link into a chat and you get a card with the poster, the name and the total running time instead of a bare URL.",
+    },
+  },
+  {
     date: "2026-08-23",
     ru: {
       title: "Уровни на странице итогов",
