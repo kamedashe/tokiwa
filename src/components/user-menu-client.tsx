@@ -6,6 +6,8 @@ import { UserMenuDropdown } from "@/components/user-menu-dropdown";
 import { signOutAction } from "@/lib/auth-actions";
 
 interface Viewer {
+  /** Единственный надёжный признак: имя и аватар бывают пустыми и у вошедших. */
+  signedIn: boolean;
   name: string | null;
   image: string | null;
   isSupporter: boolean;
@@ -48,7 +50,12 @@ export function UserMenuClient({
     fetch("/api/me")
       .then((r) => (r.ok ? r.json() : null))
       .then((data: Viewer | null) => {
-        if (!cancelled && data?.name !== undefined) setViewer(data);
+        // Смотрим именно на signedIn. Раньше здесь стояла проверка на имя, но
+        // гостю приходит name: null, а null !== undefined — правда, поэтому
+        // меню профиля показывалось всем подряд: вошедшим и нет. Кнопку
+        // «Войти» на сайте из-за этого не видел никто, а «Выйти» у гостя
+        // ничего не делала — выходить было не из чего.
+        if (!cancelled && data?.signedIn) setViewer(data);
       })
       .catch(() => {});
 
