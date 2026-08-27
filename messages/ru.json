@@ -21,7 +21,8 @@
     "calendar": "Календарь",
     "find": "По смыслу",
     "byName": "По названию",
-    "byMeaning": "По смыслу"
+    "byMeaning": "По смыслу",
+    "searchAll": "Искать «{query}» в каталоге →"
   },
   "home": {
     "spotlight": "В ЦЕНТРЕ ВНИМАНИЯ",

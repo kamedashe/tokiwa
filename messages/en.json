@@ -21,7 +21,8 @@
     "calendar": "Calendar",
     "find": "By meaning",
     "byName": "By title",
-    "byMeaning": "By meaning"
+    "byMeaning": "By meaning",
+    "searchAll": "Search “{query}” in the catalog →"
   },
   "home": {
     "spotlight": "SPOTLIGHT",

@@ -21,7 +21,8 @@
     "calendar": "Календар",
     "find": "За змістом",
     "byName": "За назвою",
-    "byMeaning": "За змістом"
+    "byMeaning": "За змістом",
+    "searchAll": "Шукати «{query}» у каталозі →"
   },
   "home": {
     "spotlight": "У ЦЕНТРІ УВАГИ",
