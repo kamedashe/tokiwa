@@ -21,7 +21,8 @@
     "calendar": "カレンダー",
     "find": "意味で探す",
     "byName": "タイトルで",
-    "byMeaning": "内容で"
+    "byMeaning": "内容で",
+    "searchAll": "カタログで「{query}」を検索 →"
   },
   "home": {
     "spotlight": "注目作品",
