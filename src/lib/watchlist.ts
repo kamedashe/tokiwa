@@ -19,6 +19,21 @@ export async function getEntry(titleId: number) {
 }
 
 /**
+ * Статусы сразу нескольких тайтлов — для блоков, которым надо знать состояние
+ * целой франшизы. Страница тайтла отдаётся из кэша и личного знать не может,
+ * поэтому спрашиваем уже из браузера, одним запросом вместо десятка.
+ */
+export async function getEntries(titleIds: number[]) {
+  const viewerId = await getViewerId();
+  if (!viewerId || titleIds.length === 0) return [];
+
+  return prisma.watchlistEntry.findMany({
+    where: { userId: viewerId, titleId: { in: titleIds.slice(0, 100) } },
+    select: { titleId: true, status: true },
+  });
+}
+
+/**
  * Добавляет тайтл в список или убирает, если он там уже есть.
  * Возвращает новое состояние, чтобы кнопка могла перерисоваться.
  * Регистрации не требует: у гостя список заводится прямо в браузере.
@@ -312,4 +327,60 @@ function toCard(t: {
     score: t.score,
     tags: t.genres.map((g) => g.name).join(" · "),
   };
+}
+
+/**
+ * Отмечает просмотренными несколько тайтлов разом — франшизу целиком.
+ *
+ * Половина людей со списком держит в нём часть франшизы, а остальные её
+ * части не отмечены: «Атаку титанов» посмотрел один раз, а руками надо
+ * сделать четыре записи. Это ровно та работа, из-за которой список у
+ * большинства заканчивается на одном тайтле.
+ *
+ * Список частей приходит с клиента, но доверять ему нельзя: сверяем, что
+ * присланное действительно связано с исходным тайтлом, иначе одним запросом
+ * можно было бы отметить полкаталога.
+ */
+export async function completeMany(sourceTitleId: number, titleIds: number[]) {
+  if (titleIds.length === 0) return { ok: true as const, marked: 0 };
+
+  const source = await prisma.title.findUnique({
+    where: { id: sourceTitleId },
+    select: { related: { select: { id: true } }, relatedBy: { select: { id: true } } },
+  });
+  if (!source) return { ok: false as const, marked: 0 };
+
+  // Сам тайтл тоже разрешён: человек отмечает франшизу вместе с ним.
+  const allowed = new Set([
+    sourceTitleId,
+    ...source.related.map((t) => t.id),
+    ...source.relatedBy.map((t) => t.id),
+  ]);
+  const wanted = [...new Set(titleIds)].filter((id) => allowed.has(id));
+  if (wanted.length === 0) return { ok: true as const, marked: 0 };
+
+  const userId = await getActorId();
+
+  // Полный прогресс, как и у одиночного «посмотрел»: иначе бэклог продолжит
+  // обещать часы, которых уже нет.
+  const titles = await prisma.title.findMany({
+    where: { id: { in: wanted } },
+    select: { id: true, episodesCount: true, format: true },
+  });
+
+  await prisma.$transaction(
+    titles.map((t) => {
+      const progress = t.format === "Movie" ? 1 : (t.episodesCount ?? undefined);
+      return prisma.watchlistEntry.upsert({
+        where: { userId_titleId: { userId, titleId: t.id } },
+        create: { userId, titleId: t.id, status: "completed", ...(progress ? { progress } : {}) },
+        update: { status: "completed", ...(progress ? { progress } : {}) },
+      });
+    }),
+  );
+
+  revalidatePath("/");
+  revalidatePath("/my");
+
+  return { ok: true as const, marked: titles.length };
 }

@@ -109,7 +109,12 @@
     "notifyWorking": "設定中…",
     "notifyDone": "公開されたらお知らせします",
     "notifyBlocked": "ブラウザの設定で通知がブロックされています。このサイトに許可してください。",
-    "notifyIos": "iPhone では、TokiWa をホーム画面に追加してそこから開いた場合のみ通知が使えます。"
+    "notifyIos": "iPhone では、TokiWa をホーム画面に追加してそこから開いた場合のみ通知が使えます。",
+    "franchiseMark": "シリーズをまとめて（あと{count}）",
+    "franchiseHint": "チェックした作品を視聴済みにします。観ていないものは外してください。",
+    "franchiseApply": "{count}件を記録",
+    "franchiseWorking": "記録中…",
+    "franchiseDone": "{count}件を記録しました"
   },
   "status": {
     "watching": "見ている",
