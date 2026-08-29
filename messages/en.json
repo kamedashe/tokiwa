@@ -109,7 +109,12 @@
     "notifyWorking": "Turning on…",
     "notifyDone": "We will ping you when it airs",
     "notifyBlocked": "Notifications are blocked in your browser settings — allow them for this site.",
-    "notifyIos": "On iPhone notifications only work if you add TokiWa to the Home Screen and open it from there."
+    "notifyIos": "On iPhone notifications only work if you add TokiWa to the Home Screen and open it from there.",
+    "franchiseMark": "Mark the franchise — {count} more",
+    "franchiseHint": "Everything ticked will be marked as watched. Untick what you have not seen.",
+    "franchiseApply": "Mark {count}",
+    "franchiseWorking": "Marking…",
+    "franchiseDone": "Marked: {count}"
   },
   "status": {
     "watching": "Watching",

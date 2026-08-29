@@ -7,6 +7,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { Artwork } from "@/components/artwork";
 import { TitleListActions, TitleProgress } from "@/components/title-actions";
+import { FranchiseComplete } from "@/components/franchise-complete";
 import { AnimeCard } from "@/components/anime-card";
 import { prisma } from "@/lib/prisma";
 import { getNearby, type CardTitle } from "@/lib/queries";
@@ -39,11 +40,24 @@ const STATUS_KEYS: Record<string, string> = {
   not_yet_aired: "statusAnnounced",
 };
 
+/** Поля, которых хватает списку частей франшизы с галочками. */
+const PART_SELECT = {
+  id: true,
+  title: true,
+  titleRu: true,
+  titleJp: true,
+  year: true,
+  format: true,
+} as const;
+
 async function getTitle(slug: string) {
   return prisma.title.findUnique({
     where: { slug },
     include: {
       genres: { select: { name: true, slug: true } },
+      // Связь односторонняя — собираем обе стороны, как и везде.
+      related: { select: PART_SELECT },
+      relatedBy: { select: PART_SELECT },
     },
   });
 }
@@ -102,6 +116,20 @@ export default async function TitlePage({
 
   const fullLength = totalMinutes(title);
 
+  // Части франшизы вместе с самим тайтлом: человек отмечает «смотрел это»
+  // целиком, и текущая серия — такая же её часть, как и соседние.
+  const franchiseParts = [
+    { id: title.id, title: names.title, year: title.year, format: title.format },
+    ...[...title.related, ...title.relatedBy]
+      .filter((p, i, all) => all.findIndex((o) => o.id === p.id) === i)
+      .map((p) => ({
+        id: p.id,
+        title: pickTitle(p, locale).title,
+        year: p.year,
+        format: p.format,
+      })),
+  ];
+
   // Ключ читаем здесь, а не через lib/push: тот тянет за собой web-push,
   // а на этой странице нужна только проверка, что пуши вообще настроены.
   // Приватный проверяем тоже — без него подписка заведётся, а отправка нет.
@@ -153,6 +181,14 @@ export default async function TitlePage({
             nextEpisodeAt={title.nextEpisodeAt?.toISOString() ?? null}
             vapidKey={vapidKey}
           />
+
+          {/* Отметить франшизу разом. Показываем только когда частей больше
+              одной — иначе это просто вторая кнопка «посмотрел». */}
+          {franchiseParts.length > 1 && (
+            <div className="mt-3">
+              <FranchiseComplete sourceTitleId={title.id} parts={franchiseParts} />
+            </div>
+          )}
 
           <div className="mt-5 flex flex-wrap gap-2">
             {title.genres.map((g) => (
