@@ -8,8 +8,26 @@ export const FALLBACK_DURATION_MIN = 24;
 
 export interface TimedTitle {
   episodesCount: number | null;
+  /**
+   * Сколько серий вышло. У длинных онгоингов общего числа не объявляют, и
+   * episodesCount там пуст — но время посчитать всё равно можно, по вышедшим.
+   */
+  episodesAired: number | null;
   durationMin: number | null;
   format: string | null;
+}
+
+/**
+ * Сколько серий брать в расчёт.
+ *
+ * Порядок важен. У «Ван-Писа» и «Детектива Конана» общего числа серий нет
+ * вовсе — они идут двадцать пять лет, — и раньше на этом месте подставлялась
+ * единица: сайт честно сообщал, что на «Ван-Пис» нужно двадцать четыре
+ * минуты. Это худший из возможных неверных ответов ровно для того сайта,
+ * который обещает посчитать время.
+ */
+function episodeCount(title: TimedTitle): number {
+  return title.episodesCount ?? title.episodesAired ?? 1;
 }
 
 /**
@@ -23,16 +41,14 @@ export function totalMinutes(title: TimedTitle): number {
 
   if (title.format === "Movie") return perEpisode;
 
-  const episodes = title.episodesCount ?? 1;
-  return perEpisode * episodes;
+  return perEpisode * episodeCount(title);
 }
 
 /** Сколько осталось досмотреть с учётом прогресса. */
 export function remainingMinutes(title: TimedTitle, progress: number): number {
   if (title.format === "Movie") return progress > 0 ? 0 : totalMinutes(title);
 
-  const episodes = title.episodesCount ?? 1;
-  const left = Math.max(0, episodes - progress);
+  const left = Math.max(0, episodeCount(title) - progress);
   return (title.durationMin ?? FALLBACK_DURATION_MIN) * left;
 }
 

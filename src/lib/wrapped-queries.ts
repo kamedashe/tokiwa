@@ -40,6 +40,7 @@ export async function getWrappedStats(locale: string): Promise<WrappedStats | nu
           format: true,
           score: true,
           episodesCount: true,
+          episodesAired: true,
           durationMin: true,
           genres: { select: { name: true } },
         },
