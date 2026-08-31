@@ -15,6 +15,7 @@ const TITLE_FIELDS = {
   score: true,
   format: true,
   episodesCount: true,
+  episodesAired: true,
   durationMin: true,
   genres: { select: { name: true }, take: 2 },
 } as const;

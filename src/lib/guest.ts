@@ -74,7 +74,7 @@ export async function getGuestListWeight(
     select: {
       status: true,
       progress: true,
-      title: { select: { episodesCount: true, durationMin: true, format: true } },
+      title: { select: { episodesCount: true, episodesAired: true, durationMin: true, format: true } },
     },
   });
 
