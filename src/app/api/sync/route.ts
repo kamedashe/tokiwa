@@ -8,6 +8,7 @@ import {
   upgradePosters,
 } from "@/lib/sync";
 import { notifyNewEpisodes } from "@/lib/notify-episodes";
+import { notifyFranchiseUpdates } from "@/lib/notify-franchise";
 import { sendWeeklyDigests, isDigestWindow } from "@/lib/digest";
 
 // Прогон ходит во внешние API и упирается в их задержки. 60 секунд — потолок
@@ -70,6 +71,11 @@ async function run(request: Request) {
       // После свежих данных о сериях — уведомления: Telegram или почта.
       const notified = await notifyNewEpisodes({ budgetMs: 20_000 });
 
+      // Тем, кто уже досмотрел, но не держит статус «смотрю»: у их франшизы
+      // могла появиться новая часть — узнаём это как раз в этом режиме,
+      // syncRelated несколькими строками выше только что мог её связать.
+      const franchiseNotified = await notifyFranchiseUpdates({ budgetMs: 8_000 });
+
       // Понедельничное утро — дошлём хвост воскресного дайджеста тем,
       // до кого вечерний прогон не успел добраться.
       const digest = isDigestWindow()
@@ -89,6 +95,9 @@ async function run(request: Request) {
         notifiedTg: notified.tg ?? 0,
         notifiedMail: notified.mail ?? 0,
         notifiedPush: notified.push ?? 0,
+        franchiseNotifiedTg: franchiseNotified.tg ?? 0,
+        franchiseNotifiedMail: franchiseNotified.mail ?? 0,
+        franchiseNotifiedPush: franchiseNotified.push ?? 0,
         digestSent: digest?.sent ?? 0,
       });
     }

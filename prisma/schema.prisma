@@ -23,10 +23,10 @@ datasource db {
 }
 
 model Title {
-  id        Int     @id @default(autoincrement())
-  slug      String  @unique
-  malId     Int?    @unique
-  anilistId Int?    @unique
+  id        Int    @id @default(autoincrement())
+  slug      String @unique
+  malId     Int?   @unique
+  anilistId Int?   @unique
 
   title    String
   /// Русское название с Shikimori. Показываем его, когда оно есть.
@@ -58,12 +58,13 @@ model Title {
   /// Длительность одной серии в минутах — основа расчёта времени на тайтл.
   durationMin Int?
 
-  genres    Genre[]
+  genres          Genre[]
   /// Тематические метки с Shikimori — см. модель Tag.
-  tags      Tag[]
+  tags            Tag[]
   /// Метки AniList с рангами — см. модель AniTag.
-  aniTags   TitleAniTag[]
-  watchlist WatchlistEntry[]
+  aniTags         TitleAniTag[]
+  watchlist       WatchlistEntry[]
+  franchiseAlerts FranchiseAlert[]
 
   /// Франшиза: сиквелы, приквелы, побочки и фильмы одного тайтла. Prisma
   /// хранит такую связь односторонне, поэтому для показа «рядом» страница
@@ -110,12 +111,12 @@ model Title {
   embeddedAt    DateTime?
 
   /// Когда последний раз тянули метаданные из Jikan — чтобы не дёргать API зря.
-  syncedAt DateTime?
+  syncedAt        DateTime?
   /// Когда последний раз обходили связи. null — этот тайтл ещё не проверяли,
   /// благодаря чему обход возобновляется с места остановки.
   relatedSyncedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([year, season])
   @@index([score])
@@ -140,7 +141,7 @@ model SearchQuery {
   id String @id @default(cuid())
 
   /// Исходная строка целиком, как её ввели.
-  text String
+  text    String
   /// Что из неё разобралось в структурные условия — «без: гарем», «2020-е».
   matched String[]
   /// Сколько нашлось. Ноль — самая интересная строчка в этой таблице.
@@ -166,8 +167,8 @@ model SearchQuery {
 /// Found Family, Kuudere, Iyashikei, Rural».
 model AniTag {
   /// Идентификатор AniList, свой генерировать незачем.
-  id   Int    @id
-  name String @unique
+  id       Int     @id
+  name     String  @unique
   /// Раздел вида Theme-Fantasy, Cast-Traits, Technical. По нему отсеиваются
   /// метки не про содержание: Rotoscoping — это способ рисовать, а не тон.
   category String?
@@ -203,14 +204,14 @@ model TitleAniTag {
 /// ровно для одного: они несут тон, которого нет в синопсисе, и без них
 /// «что-нибудь тихое и грустное» ищется плохо.
 model Tag {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
   /// Русское имя метки с Shikimori: «Iyashikei» → «Исцеляющее». Каталог и
   /// запросы русские, и на днях подбора состава это готовый рычаг —
   /// проверить, ищется ли лучше по-русски, не переобходя каталог заново.
   nameRu String?
   /// genre | theme | demographic — как их делит Shikimori.
-  kind String
+  kind   String
 
   titles Title[]
 
@@ -277,19 +278,41 @@ model User {
   /// Поддержал проект на Boosty или Ko-fi. Ставится вручную скриптом
   /// (`npm run supporter`): публичного API подписок у Boosty нет, а на нашем
   /// масштабе список сторонников проще сверять глазами, чем строить обмен.
-  isSupporter Boolean @default(false)
+  isSupporter   Boolean @default(false)
   /// Публичное имя в благодарностях. Пусто — значит просили не называть.
   supporterName String?
 
-  accounts     Account[]
-  sessions     Session[]
-  watchlist    WatchlistEntry[]
-  feedback     Feedback[]
-  telegramLink TelegramLink?
-  pushSubs     PushSubscription[]
-  pollAnswers  PollAnswer[]
+  accounts        Account[]
+  sessions        Session[]
+  watchlist       WatchlistEntry[]
+  feedback        Feedback[]
+  telegramLink    TelegramLink?
+  pushSubs        PushSubscription[]
+  pollAnswers     PollAnswer[]
+  franchiseAlerts FranchiseAlert[]
 
   createdAt DateTime @default(now())
+}
+
+/// Кому уже сообщили о новой части франшизы — антидубль рассылки.
+///
+/// Отдельная таблица, а не поле на WatchlistEntry: там запись живёт на
+/// СТАРОЙ (просмотренной) части, а оповещать нужно про НОВУЮ, и у одной
+/// просмотренной части со временем может появиться несколько новых —
+/// сиквел, потом ещё OVA. titleId — id именно новой части.
+model FranchiseAlert {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Тайтл, о появлении которого сообщили.
+  titleId Int
+  title   Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  /// Один человек — одно оповещение об одной новой части.
+  @@unique([userId, titleId])
 }
 
 model Account {
@@ -352,7 +375,6 @@ model WatchlistEntry {
   @@unique([userId, titleId])
   @@index([userId, status, updatedAt])
 }
-
 
 /// Подписка браузера на пуш-уведомления.
 ///
