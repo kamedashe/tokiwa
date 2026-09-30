@@ -12,7 +12,17 @@ import { SITE_URL } from "@/lib/seo";
  */
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
+    rules: [
+      {
+        // Сборщики данных для обучения и SEO-сканеры: пользы сайту ноль, а
+        // каждый обход платный — перегенерация страниц и трафик.
+        userAgent: [
+          "GPTBot", "ClaudeBot", "CCBot", "Bytespider", "Amazonbot", "AhrefsBot",
+          "SemrushBot", "MJ12bot", "DotBot", "PetalBot", "meta-externalagent",
+        ],
+        disallow: "/",
+      },
+      {
       userAgent: "*",
       allow: "/",
       // Каталог — это 15 тысяч страниц на четырёх языках. Обход без паузы
@@ -37,7 +47,8 @@ export default function robots(): MetadataRoute.Robots {
         "/ig",
         "/tg",
       ],
-    },
+      },
+    ],
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }
